@@ -1,30 +1,67 @@
 <!doctype html>
 <html lang="ru">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Калькулятор</title>
-<link rel="stylesheet" href="./style.css?v=Calc_v01">
-<script src="./script.js?v=Calc_v01" defer></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>Калькулятор стоимости работ</title>
+  <link rel="stylesheet" href="./style.css?v=Calc_v01_full">
+  <script defer src="./script.js?v=Calc_v01_full"></script>
 </head>
 <body>
-<h2>Калькулятор стоимости работ</h2>
-<table id="table-main"><tbody></tbody></table>
-<table id="table-extra"><tbody></tbody></table>
-<div class="total-line"><b>Итого:</b> <span id="grand-total">0</span> ₽</div>
-<div class="discount-wrap">
-<label for="discount-input">Персональная скидка, %</label>
-<input id="discount-input" type="number" min="0" max="100" step="1" placeholder="%">
-</div>
-<div class="kicker" id="discount-line" style="display:none;">
-Скидка <b><span id="discount-pct">0</span>%</b>: −<b><span id="discount-amount">0</span> ₽</b>.
-Итого со скидкой: <b><span id="grand-with-discount">0</span> ₽</b>
-</div>
-<div class="actions">
-<button id="btn-estimate" class="btn-outline">Рассчёт</button>
-<button id="btn-copy-estimate" class="btn-outline">Скопировать</button>
-<button id="btn-estimate-pdf" class="btn-outline">Скачать PDF</button>
-</div>
-<footer>Версия сборки: 16.09.2025-024//13:18:55</footer>
+  <main class="wrap">
+    <h1>Калькулятор стоимости работ</h1>
+
+    <section>
+      <h2>Основные работы</h2>
+      <table id="table-main" class="calc-table">
+        <thead><tr>
+          <th>Наименование работ</th>
+          <th>Кол-во</th>
+          <th>Ед. изм.</th>
+          <th class="num">Цена ед.</th>
+          <th class="num">Цена</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Дополнительные работы</h2>
+      <table id="table-extra" class="calc-table">
+        <thead><tr>
+          <th>Наименование работ</th>
+          <th>Кол-во</th>
+          <th>Ед. изм.</th>
+          <th class="num">Цена ед.</th>
+          <th class="num">Цена</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <div class="total">
+      <div class="total-line"><b>Итого:</b> <span id="grand-total">0</span> ₽</div>
+      <div class="discount">
+        <label for="discount-input" class="kicker">Персональная скидка, %</label>
+        <input id="discount-input" type="number" min="0" max="100" step="1" placeholder="%">
+      </div>
+      <div class="kicker" id="discount-line" style="display:none;">
+        Скидка <b><span id="discount-pct">0</span>%</b>: −<b><span id="discount-amount">0</span> ₽</b>. 
+        Итого со скидкой: <b><span id="grand-with-discount">0</span> ₽</b>
+      </div>
+      <div class="actions">
+        <button id="btn-estimate" class="btn-outline">Рассчёт</button>
+        <button id="btn-copy-estimate" class="btn-outline">Скопировать</button>
+        <button id="btn-estimate-pdf" class="btn-outline">Скачать PDF</button>
+      </div>
+    </div>
+
+    <section id="estimate" class="hidden">
+      <h2>Смета</h2>
+      <div id="estimate-body"></div>
+    </section>
+
+    <footer>Версия сборки: 16.09.2025-024//13:25:15</footer>
+  </main>
 </body>
 </html>

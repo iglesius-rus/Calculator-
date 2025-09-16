@@ -1,4 +1,23 @@
 
-body{background:#0f1115;color:#eaeaea;font-family:sans-serif;padding:20px;}
-.btn-outline{border:2px solid rgba(255,255,255,.45);color:#f5f5f5;background:transparent;border-radius:14px;padding:12px 16px;font-size:16px;cursor:pointer;}
-.btn-outline:hover{background:rgba(255,255,255,.06);} .btn-outline:active{transform:translateY(1px);}
+:root{ --bg:#0f1115; --fg:#eaeaea; --muted:#a0a3ab; --card:#151821; --border:#2a2b2f; }
+html,body{ background:var(--bg); color:var(--fg); font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif; }
+.wrap{ max-width:960px; margin:0 auto; padding:16px; }
+h1{ font-size:32px; margin:8px 0 16px; }
+h2{ font-size:18px; margin:14px 0 8px; color:var(--muted); }
+.calc-table{ width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:12px; }
+.calc-table th,.calc-table td{ padding:10px; border-bottom:1px solid var(--border); vertical-align:middle; }
+.calc-table tr:last-child td{ border-bottom:none; }
+.calc-table .num{ text-align:right; white-space:nowrap; }
+input[type=number]{ width:120px; padding:10px 12px; font-size:16px; border-radius:10px; border:1px solid var(--border); background:#111; color:#eaeaea; }
+.price-input{ width:120px; padding:8px 10px; border-radius:10px; border:1px solid var(--border); background:#111; color:#eaeaea; }
+.kicker{ color:var(--muted); }
+.total{ padding:8px 4px 16px; }
+.total-line{ font-size:20px; margin:8px 0; }
+.discount{ display:flex; align-items:center; gap:8px; margin:8px 0; justify-content:flex-start; }
+.actions{ display:flex; flex-wrap:wrap; gap:12px; margin:10px 0; }
+.btn-outline{ border:2px solid rgba(255,255,255,.45); color:#f5f5f5; background:transparent; border-radius:14px; padding:12px 16px; font-size:16px; cursor:pointer; transition:background .2s, transform .05s; }
+.btn-outline:hover{ background:rgba(255,255,255,.06); } .btn-outline:active{ transform:translateY(1px); }
+.hidden{ display:none; }
+@media (max-width: 520px){
+  h1{ font-size:24px; } .calc-table{ font-size:14px; } input[type=number], .price-input{ width:110px; }
+}
