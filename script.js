@@ -402,3 +402,67 @@ document.addEventListener('DOMContentLoaded', function(){
   }catch(e){}
   try{ if (typeof recalcAll==='function') recalcAll(); }catch(e){}
 });
+
+
+/* v024-slim-live: force live recalc on any input */
+(function(){
+  function parseMoney(t){ if(!t) return 0; var s=String(t).replace(/[^\d.,-]/g,'').replace(/[ \u00A0]/g,'').replace(/,/,'.'); var n=Number(s); return isNaN(n)?0:n; }
+  function recalcFallback(){
+    var sub = 0;
+    var rows = document.querySelectorAll('#table-main tbody tr, #table-extra tbody tr');
+    for (var i=0;i<rows.length;i++){
+      var tr = rows[i];
+      var isDiscount = tr.getAttribute('data-discount') === '1';
+      var qtyEl = tr.querySelector('td:nth-child(2) input[type="number"]');
+      var qty = parseFloat(qtyEl && qtyEl.value ? String(qtyEl.value).replace(',', '.') : '0') || 0;
+      var priceInput = tr.querySelector('.price-input');
+      var unitPrice = isDiscount ? 0 : (priceInput ? (parseFloat(priceInput.value)||0) : parseMoney((tr.querySelector('.price')||{}).textContent||''));
+      var sum = isDiscount ? 0 : Math.max(0, qty) * unitPrice;
+      var sumCell = tr.querySelector('.sum');
+      if (sumCell){ sumCell.textContent = (isDiscount?0:sum).toLocaleString('ru-RU') + ' ₽'; sumCell.dataset.sum = String(isDiscount?0:sum); }
+      if (!isDiscount) sub += sum || 0;
+    }
+    // discount rows
+    var discRows = document.querySelectorAll('#table-extra tbody tr[data-discount="1"]');
+    var discTotal = 0;
+    for (var j=0;j<discRows.length;j++){
+      var dtr = discRows[j];
+      var di = dtr.querySelector('td:nth-child(2) input[type="number"]');
+      var pct = Math.min(100, Math.max(0, parseFloat(di && di.value ? String(di.value).replace(',', '.') : '0') || 0));
+      var amt = Math.round(sub * pct) / 100;
+      var dc = dtr.querySelector('.sum');
+      if (dc){ dc.textContent = '−' + (amt||0).toLocaleString('ru-RU') + ' ₽'; dc.dataset.sum = String(-(amt||0)); }
+      discTotal += amt || 0;
+    }
+    var total = Math.max(0, sub - discTotal);
+    var grand = document.getElementById('grand-total');
+    if (grand){ grand.textContent = (total||0).toLocaleString('ru-RU'); }
+    if (typeof applyDiscountToTotal==='function'){ applyDiscountToTotal(total); }
+  }
+  function recalc(){ try{ if (typeof recalcAll==='function') return recalcAll(); }catch(e){} return recalcFallback(); }
+  function wire(){
+    var inputs = document.querySelectorAll('input[type="number"], .price-input');
+    for (var i=0;i<inputs.length;i++){
+      if (!inputs[i]._wired){
+        inputs[i].addEventListener('input', recalc);
+        inputs[i].addEventListener('change', recalc);
+        inputs[i]._wired = true;
+      }
+    }
+    var br = document.getElementById('btn-estimate'); if (br && !br._wired){ br.addEventListener('click', function(){ recalc(); if (typeof buildEstimate==='function') buildEstimate(); }); br._wired=true; }
+    var bc = document.getElementById('btn-copy-estimate'); if (bc && !bc._wired){ bc.addEventListener('click', function(){ recalc(); if (typeof buildEstimate==='function') buildEstimate(); try{ navigator.clipboard.writeText((document.getElementById('estimate-body')||{}).innerText||''); }catch(e){} }); bc._wired=true; }
+    var bp = document.getElementById('btn-estimate-pdf'); if (bp && !bp._wired){ bp.addEventListener('click', function(){ recalc(); if (typeof buildEstimate==='function') buildEstimate(); var w = window.open('', '_blank'); if(!w) return; var html = (document.getElementById('estimate-body')||{}).innerHTML||'<p>Смета пуста</p>'; w.document.write('<!DOCTYPE html><meta charset="utf-8"><title>Расчёт</title><style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;padding:20px;}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:8px;}th{text-align:left}</style><h2>Расчёт</h2>'+html); w.document.close(); setTimeout(function(){ w.print(); },300); }); bp._wired=true; }
+  }
+  function ensureRender(){
+    try{
+      var tb1 = document.querySelector('#table-main tbody');
+      var tb2 = document.querySelector('#table-extra tbody');
+      if (tb1 && tb1.children.length===0 && typeof MAIN!=='undefined' && typeof renderTable==='function'){ renderTable('#table-main', MAIN); }
+      if (tb2 && tb2.children.length===0 && typeof EXTRA!=='undefined' && typeof renderTable==='function'){ renderTable('#table-extra', EXTRA); }
+    }catch(e){}
+  }
+  if (document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', function(){ ensureRender(); wire(); recalc(); }); }
+  else { ensureRender(); wire(); recalc(); }
+  var mo = new MutationObserver(function(){ wire(); });
+  mo.observe(document.body, {childList:true, subtree:true});
+})();
