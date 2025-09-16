@@ -1,5 +1,7 @@
 // Тема
-try { localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light'); } catch(e){}
+document.getElementById('theme-toggle').addEventListener('click', () => {
+  document.body.classList.toggle('dark');
+  try { localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light'); } catch(e){}
 });
 try { const savedTheme = localStorage.getItem('theme'); if (savedTheme === 'light') document.body.classList.remove('dark'); } catch(e){}
 
@@ -391,3 +393,12 @@ function downloadPDF(){
   const mo = new MutationObserver(()=> wire());
   mo.observe(document.body, {childList:true, subtree:true});
 })();
+document.addEventListener('DOMContentLoaded', function(){
+  try{
+    var tb1 = document.querySelector('#table-main tbody');
+    var tb2 = document.querySelector('#table-extra tbody');
+    if (tb1 && tb1.children.length===0 && typeof MAIN!=='undefined' && typeof renderTable==='function'){ renderTable('#table-main', MAIN); }
+    if (tb2 && tb2.children.length===0 && typeof EXTRA!=='undefined' && typeof renderTable==='function'){ renderTable('#table-extra', EXTRA); }
+  }catch(e){}
+  try{ if (typeof recalcAll==='function') recalcAll(); }catch(e){}
+});
