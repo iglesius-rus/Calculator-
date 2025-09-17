@@ -1,0 +1,9 @@
+{
+  "name": "Калькулятор сплит‑систем",
+  "short_name": "Калькулятор",
+  "display": "standalone",
+  "start_url": ".",
+  "background_color": "#0b1220",
+  "theme_color": "#0b1220",
+  "icons": []
+}
