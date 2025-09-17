@@ -1,22 +1,42 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Калькулятор стоимости</title>
+  <title>Калькулятор стоимости монтажа</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <h1>Монтаж сплит‑системы — 12 000 ₽</h1>
+  <main class="container">
+    <h1>Монтаж сплит‑системы — 12&nbsp;000&nbsp;₽</h1>
 
-  <form id="calc">
-    <label>Длина трассы (м): <input type="number" name="length" placeholder="0"></label><br>
-    <label>Доп. магистраль (м): <input type="number" name="extra" placeholder="0"></label><br>
-    <button type="submit">Рассчитать</button>
-  </form>
+    <form id="calc" novalidate>
+      <div class="field">
+        <label for="length">Длина трассы (м)</label>
+        <input id="length" name="length" type="text" inputmode="decimal" pattern="[0-9]*[\.,]?[0-9]*" autocomplete="off" placeholder=""/>
+        <small class="hint">Оставь пустым, если не нужно учитывать.</small>
+      </div>
 
-  <footer>
-    ©Суперкондиционерщик Вано<br>
-    Версия: v033
+      <div class="field">
+        <label for="extra">Доп. магистраль (м)</label>
+        <input id="extra" name="extra" type="text" inputmode="decimal" pattern="[0-9]*[\.,]?[0-9]*" autocomplete="off" placeholder=""/>
+        <small class="hint">Считается по цене/м в настройках.</small>
+      </div>
+
+      <div class="buttons">
+        <button type="submit" id="btn-calc">Рассчитать</button>
+        <button type="button" id="btn-clear">Сбросить</button>
+      </div>
+    </form>
+
+    <section id="result" class="result hidden" aria-live="polite"></section>
+  </main>
+
+  <footer class="footer">
+    <div>©Суперкондиционерщик Вано</div>
+    <div>Версия: v034</div>
   </footer>
+
+  <script src="app.js"></script>
 </body>
 </html>
