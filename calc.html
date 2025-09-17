@@ -4,17 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <title>Калькулятор стоимости работ</title>
-  <link rel="stylesheet" href="./style.css?v=pwa028">
-  <link rel="manifest" href="./manifest.webmanifest">
-  <meta name="theme-color" content="#0f1115">
-  <link rel="icon" sizes="192x192" href="./icon-192.png">
-  <link rel="icon" sizes="512x512" href="./icon-512.png">
-  <script defer src="./script.js?v=pwa028"></script>
+  <link rel="stylesheet" href="./style.css?v=024r">
+  <script defer src="./script.js?v=024r"></script>
 </head>
 <body>
   <header class="m-head">
     <h1>Калькулятор стоимости работ</h1>
-    <div class="tag">мобильная версия</div>
+    <div class="tag">мобильная версия • базовая</div>
   </header>
 
   <main class="m-wrap">
@@ -22,7 +18,7 @@
       <summary>Основные работы</summary>
       <table id="table-main" class="calc-table">
         <thead><tr>
-          <th>Наименование работ</th><th>Кол-во</th><th>Ед. изм.</th><th class="num">Цена ед.</th><th class="num">Цена</th>
+          <th>Наименование работ</th><th>Кол-во</th><th>Ед. изм.</th><th class="num">Цена ед.</th><th class="num">Сумма</th>
         </tr></thead>
         <tbody></tbody>
       </table>
@@ -32,7 +28,7 @@
       <summary>Дополнительные работы</summary>
       <table id="table-extra" class="calc-table">
         <thead><tr>
-          <th>Наименование работ</th><th>Кол-во</th><th>Ед. изм.</th><th class="num">Цена ед.</th><th class="num">Цена</th>
+          <th>Наименование работ</th><th>Кол-во</th><th>Ед. изм.</th><th class="num">Цена ед.</th><th class="num">Сумма</th>
         </tr></thead>
         <tbody></tbody>
       </table>
@@ -40,15 +36,6 @@
 
     <div class="total-box">
       <div class="total-line"><b>Итого:</b> <span id="grand-total">0</span> ₽</div>
-      <div class="discount-row">
-        <label for="discount-input" class="kicker">Персональная скидка, %</label>
-        <input id="discount-input" type="number" min="0" max="100" step="1" placeholder="%">
-      </div>
-      <div class="kicker" id="discount-line" style="display:none;">
-        Скидка <b><span id="discount-pct">0</span>%</b>: −<b><span id="discount-amount">0</span> ₽</b>.
-        Итого со скидкой: <b><span id="grand-with-discount">0</span> ₽</b>
-      </div>
-
       <div class="actions">
         <button id="btn-estimate" class="btn-outline">Рассчёт</button>
         <button id="btn-copy-estimate" class="btn-outline">Скопировать</button>
@@ -61,15 +48,7 @@
       <div id="estimate-body"></div>
     </section>
 
-    <footer class="m-foot">Версия сборки: Calc_v028_mobile_pwa.zip • 17.09.2025 08:54:20</footer>
+    <footer class="m-foot">Версия сборки: 0.2.4R • 17.09.2025 09:00:46 MSK</footer>
   </main>
-
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
-        navigator.serviceWorker.register('./service-worker.js', { scope: './' }).catch(function(){});
-      });
-    }
-  </script>
 </body>
 </html>
