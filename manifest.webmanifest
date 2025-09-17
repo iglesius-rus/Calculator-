@@ -1,12 +1,12 @@
 {
   "name": "Калькулятор стоимости работ",
   "short_name": "Калькулятор",
-  "start_url": ".",
-  "scope": ".",
+  "start_url": "./calc.html",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#0b0c0e",
-  "theme_color": "#0b0c0e",
-  "lang": "ru-RU",
+  "background_color": "#0f1115",
+  "theme_color": "#0f1115",
+  "lang": "ru",
   "icons": [
     {
       "src": "icon-192.png",
