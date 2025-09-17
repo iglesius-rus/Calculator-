@@ -1,5 +1,5 @@
 
-// ==== Конфиг позиций v0.2.4 + добавления ====
+// ==== Позиции v0.2.4 + добавления ====
 const MAIN = [
   { name:'Штроба в бетоне', unit:'п.м.', price:2500, step:0.5 },
   { name:'Штроба в кирпиче', unit:'п.м.', price:1500, step:0.5 },
@@ -99,13 +99,13 @@ function wire(){
   document.querySelectorAll('input[type="number"], .price-input').forEach(inp=>{ if(!inp._wired){ inp.addEventListener('input', strictRecalc); inp.addEventListener('change', strictRecalc); inp._wired=true; } });
   const br=document.getElementById('btn-estimate'); if(br && !br._wired){ br.addEventListener('click', ()=>{ strictRecalc(); buildEstimate(); }); br._wired=true; }
   const bc=document.getElementById('btn-copy-estimate'); if(bc && !bc._wired){ bc.addEventListener('click', async ()=>{ strictRecalc(); buildEstimate(); try{ await navigator.clipboard.writeText(document.getElementById('estimate-body')?.innerText||''); }catch(e){} }); bc._wired=true; }
-  const bp=document.getElementById('btn-estimate-pdf'); if(bp && !bp._wired){ bp.addEventListener('click', ()=>{ strictRecalc(); buildEstimate(); const w=window.open('', '_blank'); if(!w) return; const html=document.getElementById('estimate-body')?.innerHTML||'<p>Смета пуста</p>'; w.document.write('<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Расчёт</title><style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;padding:20px;}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:8px;}th{text-align:left}</style></head><body><h2>Расчёт</h2>'+html+'</body></html>'); w.document.close(); setTimeout(()=>w.print(),300); }); bp._wired=true; }
+  const bp=document.getElementById('btn-estimate-pdf'); if(bp && !bp._wired){ bp.addEventListener('click', ()=>{ strictRecalc(); buildEstimate(); const w=window.open('', '_blank'); if(!w) return; const html=document.getElementById('estimate-body')?.innerHTML||'<p>Смета пуста</p>'; w.document.write('<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Расчёт</title><style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;padding:20px;}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:8px}th{text-align:left}</style></head><body><h2>Расчёт</h2>'+html+'</body></html>'); w.document.close(); setTimeout(()=>w.print(),300); }); bp._wired=true; }
 }
 
 function init(){ renderTable('#table-main', MAIN); renderTable('#table-extra', EXTRA); wire(); strictRecalc(); }
 if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
 
-// Fallback SW registration
+// SW registration fallback
 if ('serviceWorker' in navigator){
   window.addEventListener('load', function(){
     navigator.serviceWorker.register('./service-worker.js', { scope: './' }).catch(function(){});

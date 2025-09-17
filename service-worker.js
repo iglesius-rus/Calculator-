@@ -1,7 +1,7 @@
 
-const CACHE = 'calc-pwa-v4';
+const CACHE = 'calc-pwa-v5';
 const ASSETS = [
-  './', './index.html', './calc.html', './style.css?v=pwa027', './script.js?v=pwa027',
+  './', './index.html', './calc.html', './style.css?v=pwa028', './script.js?v=pwa028',
   './offline.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'
 ];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS))); });
