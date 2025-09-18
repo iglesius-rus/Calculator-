@@ -10,9 +10,7 @@
 html,body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif}
 .wrap{max-width:860px;margin:0 auto;padding:12px}
 .head{display:flex;align-items:center;justify-content:space-between;padding:10px 0 4px;border-bottom:1px solid var(--border)}
-.logo{display:inline-flex;align-items:center;font-weight:800;font-size:28px;letter-spacing:0.2px}
-.logo .nord{color:#fff}
-.logo .cheb{margin-left:8px;background:linear-gradient(135deg, #ff3b1f 0%, #ff3b1f 45%, #2b64ff 55%, #2b64ff 100%); -webkit-background-clip:text; background-clip:text; color:transparent; font-weight:900}
+.title{font-weight:800;font-size:22px;letter-spacing:0.2px}
 .tag{color:var(--muted);font-size:12px}
 .acc{margin:12px 0;border:1px solid var(--border);border-radius:14px;background:var(--card);overflow:hidden}
 .acc>summary{cursor:pointer;padding:12px 14px;font-weight:700;list-style:none}
@@ -33,7 +31,6 @@ input[type=number]{width:100px;max-width:32vw;padding:8px 10px;font-size:14px;bo
 .hidden{display:none}
 @media (max-width:520px){
   .wrap{padding:10px}
-  .logo{font-size:24px}
   .table{font-size:13px}
   input[type=number], .price-input{width:86px;font-size:13px}
 }
