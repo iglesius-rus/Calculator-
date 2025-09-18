@@ -15,8 +15,8 @@
 </head>
 <body>
   <header class="container header">
-    <h1>Монтаж сплит‑системы — <span class="price">12&nbsp;000&nbsp;₽</span></h1>
-    <p class="sub">Калькулятор сметы. Ровно по делу.</p>
+    <h1>Калькулятор сметы монтажа сплит‑систем</h1>
+    <p class="sub">Базовый монтаж: <span class="price">12&nbsp;000&nbsp;₽</span>. Итог зависит от условий.</p>
   </header>
 
   <main class="container">
@@ -24,12 +24,12 @@
       <p class="sale">Скидка 10% при заказе до конца месяца</p>
       <label for="address" class="label">Адрес для сметы</label>
       <input id="address" type="text" class="address-input" placeholder="Улица, дом, подъезд…">
-      <p class="hint">Нужен для оценки логистики, этажности и доступа к фасаду.</p>
     </section>
 
     <section class="card">
-      <h2>Калькулятор</h2>
+      <h2>Параметры монтажа</h2>
       <div class="grid">
+        <!-- Only examples, in real use your full set of fields should be here -->
         <label class="grid-item">
           <span>Мощность, кВт</span>
           <input id="power" type="number" min="2.0" max="10" step="0.1" value="2.5">
@@ -39,38 +39,24 @@
           <input id="pipe" type="number" min="1" max="25" step="0.5" value="3">
         </label>
         <label class="grid-item">
-          <span>Высота этажа</span>
-          <select id="floor">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5+</option>
-          </select>
-        </label>
-        <label class="grid-item">
-          <span>Штробление</span>
-          <select id="chasing">
-            <option value="no" selected>Нет</option>
-            <option value="yes">Да</option>
-          </select>
+          <span>Кабель‑канал (короб), м</span>
+          <input id="duct" type="number" min="0" max="40" step="0.5" value="0">
         </label>
       </div>
 
       <div class="actions">
-        <button id="calcBtn" class="btn ghost">Рассчёт</button>
         <button id="copyBtn" class="btn">Скопировать смету</button>
       </div>
 
       <div id="resultWrap" class="result hidden">
         <h3>Смета</h3>
-        <textarea id="result" readonly rows="10"></textarea>
+        <textarea id="result" readonly rows="14"></textarea>
       </div>
     </section>
   </main>
 
   <footer class="container footer">
-    <p>Версия: 1.020</p>
+    <p>Версия: 1.022</p>
   </footer>
 
   <script src="script.js"></script>
