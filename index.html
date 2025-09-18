@@ -3,22 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Установка сплит‑систем — смета</title>
+  <title>Калькулятор сметы монтажа сплит‑систем</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f172a">
   <link rel="stylesheet" href="styles.css">
   <script>
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js').catch(console.error);
-      });
+      addEventListener('load', () => navigator.serviceWorker.register('service-worker.js').catch(console.error));
     }
   </script>
 </head>
 <body>
-  <header class="container">
+  <header class="container header">
     <h1>Монтаж сплит‑системы — <span class="price">12&nbsp;000&nbsp;₽</span></h1>
-    <p class="sub">Чисто, аккуратно, по СНиП. Без сюрпризов в смете.</p>
+    <p class="sub">Калькулятор сметы. Ровно по делу.</p>
   </header>
 
   <main class="container">
@@ -26,22 +24,53 @@
       <p class="sale">Скидка 10% при заказе до конца месяца</p>
       <label for="address" class="label">Адрес для сметы</label>
       <input id="address" type="text" class="address-input" placeholder="Улица, дом, подъезд…">
-      <p class="hint">Укажите адрес, чтобы мы оценили сложности доступа, этажность и срок монтажа.</p>
+      <p class="hint">Нужен для оценки логистики, этажности и доступа к фасаду.</p>
     </section>
 
     <section class="card">
-      <h2>Что включено</h2>
-      <ul class="list">
-        <li>Крепление внутреннего и наружного блока</li>
-        <li>Базовая трасса до 3 м, межблочная проводка</li>
-        <li>Вакуумирование, пусконаладка, проверка утечек</li>
-        <li>Штробление по согласованию</li>
-      </ul>
+      <h2>Калькулятор</h2>
+      <div class="grid">
+        <label class="grid-item">
+          <span>Мощность, кВт</span>
+          <input id="power" type="number" min="2.0" max="10" step="0.1" value="2.5">
+        </label>
+        <label class="grid-item">
+          <span>Длина трассы, м</span>
+          <input id="pipe" type="number" min="1" max="25" step="0.5" value="3">
+        </label>
+        <label class="grid-item">
+          <span>Высота этажа</span>
+          <select id="floor">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5+</option>
+          </select>
+        </label>
+        <label class="grid-item">
+          <span>Штробление</span>
+          <select id="chasing">
+            <option value="no" selected>Нет</option>
+            <option value="yes">Да</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="actions">
+        <button id="calcBtn" class="btn ghost">Рассчёт</button>
+        <button id="copyBtn" class="btn">Скопировать смету</button>
+      </div>
+
+      <div id="resultWrap" class="result hidden">
+        <h3>Смета</h3>
+        <textarea id="result" readonly rows="10"></textarea>
+      </div>
     </section>
   </main>
 
   <footer class="container footer">
-    <p>© 2025 NordCheb. Версия: 1.017</p>
+    <p>Версия: 1.020</p>
   </footer>
 
   <script src="script.js"></script>

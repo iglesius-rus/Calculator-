@@ -1,6 +1,6 @@
 {
-  "name": "NordCheb — монтаж сплит‑систем",
-  "short_name": "NordCheb",
+  "name": "Калькулятор сметы монтажа сплит‑систем",
+  "short_name": "Смета",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#0b1020",
