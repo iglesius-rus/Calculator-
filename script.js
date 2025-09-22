@@ -56,9 +56,9 @@ function rowHTML(r){
 function buildMainWithExtras(MAIN){
   const tbody = document.querySelector('#table-main tbody');
   const EXTRA_MAP = {
-    '07-09': { name:'Дополнительная трасса (за 1 м) 07–09 (BTU)', unit:'п.м.', price:1500 },
-    '12':    { name:'Дополнительная трасса (за 1 м) 12 (BTU)',     unit:'п.м.', price:1700 },
-    '18':    { name:'Дополнительная трасса (за 1 м) 18 (BTU)',     unit:'п.м.', price:1700 }
+    '07-09': { name:'Дополнительная трасса (за 1 м) 07–09', unit:'п.м.', price:1500 },
+    '12':    { name:'Дополнительная трасса (за 1 м) 12',     unit:'п.м.', price:1700 },
+    '18':    { name:'Дополнительная трасса (за 1 м) 18',     unit:'п.м.', price:1700 }
   };
   const keyOf = (name)=> name.includes('07-09') ? '07-09' : (name.includes('12') && !name.includes('012')) ? '12' : '18';
   const rows = [];
