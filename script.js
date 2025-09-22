@@ -6,6 +6,24 @@ const _themeBtn = document.getElementById('theme-toggle'); if (_themeBtn) _theme
 try { const savedTheme = localStorage.getItem('theme'); if (savedTheme === 'light') document.body.classList.remove('dark'); } catch(e){}
 
 /* Аккордеон */
+
+function ensureAddressLine(){
+  try {
+    const val = (document.getElementById('address-input')?.value?.trim() 
+              || document.getElementById('estimate-address')?.value?.trim() 
+              || '');
+    const wrap = document.getElementById('estimate-body');
+    if (!wrap) return;
+    const id = 'estimate-address-line';
+    let line = document.getElementById(id);
+    if (val){
+      if (!line) { line = document.createElement('div'); line.id = id; line.className = 'kicker'; wrap.appendChild(line); }
+      line.textContent = 'Адрес: ' + val;
+    } else if (line) {
+      line.remove();
+    }
+  } catch(e){}
+}
 function setMaxHeight(el, open) { if (open) el.style.maxHeight = el.scrollHeight + 'px'; else el.style.maxHeight = '0px'; }
 function scrollToPanel(panel){ panel.scrollIntoView({ behavior:'smooth', block:'start' }); }
 function saveState(){ try { const openIds = Array.from(document.querySelectorAll('.content-section.open')).map(p => p.id); localStorage.setItem('openPanels', JSON.stringify(openIds)); } catch(e){} }
@@ -84,6 +102,8 @@ function recalc(){
   if (!rows.length){
     wrap.innerHTML = '<p class="kicker">Пока ничего не выбрано. Укажите количество и нажмите «Рассчёт».</p>';
   } else {
+      ensureAddressLine();
+
     let total = 0;
     const items = rows.map(r => { total += r.sum; return (
       `<tr>
@@ -117,7 +137,7 @@ function estimateToPlainText(){
     rows.push(`${name} — ${qty} шт. × ${price} = ${sum}`);
   });
   const totalLine = wrap.querySelector('.total-line')?.textContent.replace(/\s+/g,' ').trim() || '';
-  const address = document.getElementById('estimate-address')?.value?.trim();
+  const address = (document.getElementById('address-input')?.value?.trim() || document.getElementById('estimate-address')?.value?.trim());
   return (rows.join('\n') + (rows.length ? `\n${totalLine}` : '') + (address ? `\nАдрес: ${address}` : '')).trim();
 }
 
@@ -143,7 +163,7 @@ function attachEstimateUI(){
     btnPdf.addEventListener('click', () => {
       if (!document.querySelector('#estimate-body table')) buildEstimate();
       const wrap = document.getElementById('estimate-body');
-      const address = document.getElementById('estimate-address')?.value?.trim() || '';
+      const address = (document.getElementById('address-input')?.value?.trim() || document.getElementById('estimate-address')?.value?.trim());
       if (!wrap || !wrap.querySelector('table')) { btnPdf.textContent='Нет данных'; setTimeout(()=>btnPdf.textContent='Скачать PDF',1200); return; }
       const inner = wrap.innerHTML.replace(/<\/script>/ig, '<\\/script>');
       const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Смета</title>

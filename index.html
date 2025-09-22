@@ -35,16 +35,12 @@
       <div class="discount-wrap" style="display:flex;gap:10px;justify-content:flex-end;align-items:center;flex-wrap:wrap;margin-top:8px;">
         <label for="discount-input" class="kicker" style="margin-right:6px;">Персональная скидка, %</label>
         <input id="discount-input" type="number" min="0" max="100" step="1" placeholder="%" style="width:110px; padding:10px 12px; border-radius:12px; border:2px solid; border-color: var(--input-border,#2a2b2f); background: var(--input-bg,#111); color: #eaeaea; font-size:16px;">
-      
-      <div class="address-wrap" style="display:flex;gap:10px;justify-content:flex-end;align-items:center;flex-wrap:wrap;margin-top:8px;">
-        <label for="address-input" class="kicker" style="margin-right:6px;">Адрес объекта</label>
-        <input id="address-input" type="text" placeholder="Введите адрес" style="width:300px; padding:10px 12px; border-radius:12px; border:2px solid; border-color: var(--input-border,#2a2b2f); background: var(--input-bg,#111); color: #eaeaea; font-size:16px;">
       </div>
-</div>
       <div class="kicker" id="discount-line" style="display:none; text-align:right; margin-top:6px;">Скидка <b><span id="discount-pct">0</span>%</b>: −<b><span id="discount-amount">0</span> ₽</b>. Итого со скидкой: <b><span id="grand-with-discount">0</span> ₽</b></div>
 
-      <div class="est-actions" style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;flex-wrap:nowrap;">
-<button id="btn-copy-estimate" class="btn-outline" id="btn-copy">Скопировать</button>
+      <div class="est-actions" style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap;">
+        <button id="btn-estimate" class="btn-outline">Рассчёт</button>
+        <button id="btn-copy-estimate" class="btn-outline" id="btn-copy">Скопировать</button>
         <button id="btn-estimate-pdf" class="btn-outline" id="btn-pdf">Скачать PDF</button>
       </div>
       <div id="estimate" class="container hidden" style="margin-top:12px;">
@@ -60,7 +56,7 @@
 
   <div id="scrollFab" class="scroll-fab" role="button" aria-label="Прокрутить страницу" title="Вверх">↑</div>
 
-  R.09.2025.06 • © Суперкондиционерщик Вано</footer>
+  \122.09.2025.07 • © Суперкондиционерщик Вано\3
 
   <script src="script.js?v024"></script>
   <script>
