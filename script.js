@@ -102,8 +102,6 @@ function recalc(){
   if (!rows.length){
     wrap.innerHTML = '<p class="kicker">Пока ничего не выбрано. Укажите количество и нажмите «Рассчёт».</p>';
   } else {
-      ensureAddressLine();
-
     let total = 0;
     const items = rows.map(r => { total += r.sum; return (
       `<tr>
@@ -137,7 +135,7 @@ function estimateToPlainText(){
     rows.push(`${name} — ${qty} шт. × ${price} = ${sum}`);
   });
   const totalLine = wrap.querySelector('.total-line')?.textContent.replace(/\s+/g,' ').trim() || '';
-  const address = (document.getElementById('address-input')?.value?.trim() || document.getElementById('estimate-address')?.value?.trim());
+  const address = document.getElementById('estimate-address')?.value?.trim();
   return (rows.join('\n') + (rows.length ? `\n${totalLine}` : '') + (address ? `\nАдрес: ${address}` : '')).trim();
 }
 
@@ -163,7 +161,7 @@ function attachEstimateUI(){
     btnPdf.addEventListener('click', () => {
       if (!document.querySelector('#estimate-body table')) buildEstimate();
       const wrap = document.getElementById('estimate-body');
-      const address = (document.getElementById('address-input')?.value?.trim() || document.getElementById('estimate-address')?.value?.trim());
+      const address = document.getElementById('estimate-address')?.value?.trim() || '';
       if (!wrap || !wrap.querySelector('table')) { btnPdf.textContent='Нет данных'; setTimeout(()=>btnPdf.textContent='Скачать PDF',1200); return; }
       const inner = wrap.innerHTML.replace(/<\/script>/ig, '<\\/script>');
       const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Смета</title>
@@ -398,8 +396,8 @@ function downloadPDF(){
   }
   function wire(){
     document.querySelectorAll('input[type="number"]').forEach(inp => {
-      inp.oninput = recalcAll;
-      inp.onchange = recalcAll;
+      inp.oninput = () => { recalcAll(); buildEstimate(); }; /*__AUTO_BUILD_HOOK__*/
+      inp.onchange = () => { recalcAll(); buildEstimate(); }; /*__AUTO_BUILD_HOOK__*/
     });
     const btnRe = document.getElementById('btn-recalc') || [...document.querySelectorAll('button, .btn')].find(b=>/расч[её]т/i.test(b.textContent||''));
     const btnCp = document.getElementById('btn-copy')   || [...document.querySelectorAll('button, .btn')].find(b=>/копир/i.test(b.textContent||''));
@@ -413,3 +411,9 @@ function downloadPDF(){
   const mo = new MutationObserver(()=> wire());
   mo.observe(document.body, {childList:true, subtree:true});
 })();
+// Auto build when discount changes
+document.getElementById('discount-input')?.addEventListener('input', () => { recalcAll(); buildEstimate(); }); /*__DISCOUNT_BUILD__*/
+document.getElementById('discount-input')?.addEventListener('change', () => { recalcAll(); buildEstimate(); }); /*__DISCOUNT_BUILD__*/
+
+// Auto build and update address when address changes
+document.getElementById('address-input')?.addEventListener('input', () => { ensureAddressLine(); buildEstimate(); }); /*__ADDRESS_BUILD__*/
