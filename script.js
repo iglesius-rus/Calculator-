@@ -66,7 +66,7 @@ function buildMainWithExtras(MAIN){
   tbody.innerHTML = rows.map(r => rowHTML(r)).join('');
 }
 
-function buildTable(id, rows){ const tbody = document.querySelector(id + ' tbody'); tbody.innerHTML = rows.map(r=>rowHTML(r)).join(''); }
+function buildTable(id, rows){ const tbody = document.querySelector(id + ' tbody'); if (!tbody) return; tbody.innerHTML = rows.map(r=>rowHTML(r)).join(''); }
 
 function recalc(){
   let total = 0;
@@ -124,13 +124,7 @@ function estimateToPlainText(){
 function attachEstimateUI(){
   const btnEstimate = document.getElementById('btn-estimate');
   const btnCopy = document.getElementById('btn-copy-estimate');
-  const btnPdf = document.getElementById('btn-estimate-pdf');
-  if (btnEstimate){ btnEstimate.addEventListener('click', () => { buildEstimate(); }); }
-  if (btnCopy){
-    btnCopy.addEventListener('click', async () => {
-      if (!document.querySelector('#estimate-body table')) buildEstimate();
-      const text = estimateToPlainText();
-      if (!text){ btnCopy.textContent='Нет данных'; setTimeout(()=>btnCopy.textContent='Скопировать',1200); return; }
+   }
       try { await navigator.clipboard.writeText(text); btnCopy.textContent='Скопировано ✅'; setTimeout(()=>btnCopy.textContent='Скопировать',1500); }
       catch(e){
         const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta);
@@ -378,8 +372,8 @@ function downloadPDF(){
   }
   function wire(){
     document.querySelectorAll('input[type="number"]').forEach(inp => {
-      inp.oninput = recalcAll;
-      inp.onchange = recalcAll;
+      inp.oninput = () => { recalcAll(); buildEstimate(); }; /*__AUTO_BUILD_HOOK__*/
+      inp.onchange = () => { recalcAll(); buildEstimate(); }; /*__AUTO_BUILD_HOOK__*/
     });
     const btnRe = document.getElementById('btn-recalc') || [...document.querySelectorAll('button, .btn')].find(b=>/расч[её]т/i.test(b.textContent||''));
     const btnCp = document.getElementById('btn-copy')   || [...document.querySelectorAll('button, .btn')].find(b=>/копир/i.test(b.textContent||''));
@@ -393,3 +387,93 @@ function downloadPDF(){
   const mo = new MutationObserver(()=> wire());
   mo.observe(document.body, {childList:true, subtree:true});
 })();
+// Auto build when discount changes
+document.getElementById('discount-input')?.addEventListener('input', () => { recalcAll(); buildEstimate(); }); /*__DISCOUNT_BUILD__*/
+document.getElementById('discount-input')?.addEventListener('change', () => { recalcAll(); buildEstimate(); }); /*__DISCOUNT_BUILD__*/
+
+function ensureAddressLine(){
+  try {
+    const val = (document.getElementById('address-input')?.value?.trim() 
+              || document.getElementById('estimate-address')?.value?.trim() 
+              || '');
+    const wrap = document.getElementById('estimate-body');
+    if (!wrap) return;
+    const id = 'estimate-address-line';
+    let line = document.getElementById(id);
+    if (val){
+      if (!line) { line = document.createElement('div'); line.id = id; line.className = 'kicker'; wrap.appendChild(line); }
+      line.textContent = 'Адрес: ' + val;
+    } else if (line) {
+      line.remove();
+    }
+  } catch(e){}
+}
+
+// Auto build and update address when address changes
+document.getElementById('address-input')?.addEventListener('input', () => { ensureAddressLine(); buildEstimate(); }); /*__ADDRESS_BUILD__*/
+
+async function loadScriptOnce(src){
+  return new Promise((resolve, reject) => {
+    if (document.querySelector(`script[src="${src}"]`)) return resolve();
+    const s = document.createElement('script'); s.src = src; s.async = true;
+    s.onload = () => resolve(); s.onerror = () => reject(new Error('Script load failed: '+src));
+    document.head.appendChild(s);
+  });
+}
+async function shareEstimatePDF(){
+  try {
+    if (!document.querySelector('#estimate-body table')) { if (typeof buildEstimate==='function') buildEstimate(); }
+    const el = document.querySelector('#estimate-body');
+    if (!el) { alert('Смета пуста'); return; }
+    await loadScriptOnce('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js');
+    await loadScriptOnce('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js');
+    const addr = (document.getElementById('address-input')?.value?.trim() || '').replace(/\s+/g,' ').trim();
+    const baseName = addr ? `Смета — ${addr}` : 'Смета';
+    const safeName = baseName.replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g,' ').trim();
+    const canvas = await html2canvas(el, { scale: 2 });
+    const imgData = canvas.toDataURL('image/png');
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ unit:'mm', format:'a4', orientation:'p' });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const margin = 10;
+    const imgW = pageW - margin*2;
+    const imgH = canvas.height * imgW / canvas.width;
+    if (imgH <= pageH - margin*2){
+      pdf.addImage(imgData, 'PNG', margin, margin, imgW, imgH, undefined, 'FAST');
+    } else {
+      let hLeft = imgH; let sY = 0;
+      const pageHeight = pageH - margin*2;
+      const onePageCanvas = document.createElement('canvas');
+      const ctx = onePageCanvas.getContext('2d');
+      while (hLeft > 0){
+        onePageCanvas.width  = canvas.width;
+        const sliceH = Math.min(canvas.width * pageHeight / imgW, canvas.height - sY);
+        onePageCanvas.height = sliceH;
+        ctx.clearRect(0,0,onePageCanvas.width, onePageCanvas.height);
+        ctx.drawImage(canvas, 0, sY, canvas.width, sliceH, 0, 0, onePageCanvas.width, sliceH);
+        const pageImg = onePageCanvas.toDataURL('image/png');
+        pdf.addImage(pageImg, 'PNG', margin, margin, imgW, pageHeight, undefined, 'FAST');
+        hLeft -= pageHeight;
+        sY += sliceH;
+        if (hLeft > 0) pdf.addPage();
+      }
+    }
+    const blob = pdf.output('blob');
+    const file = new File([blob], `${safeName}.pdf`, { type: 'application/pdf' });
+    if (navigator.canShare && navigator.canShare({ files:[file] })){
+      await navigator.share({ files:[file], title: safeName, text: 'Смета' });
+    } else {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${safeName}.pdf`;
+      a.rel = 'noopener';
+      document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+    }
+  } catch(e){
+    console.error(e);
+    alert('Не удалось сформировать или отправить PDF.');
+  }
+}
+
+document.getElementById('btn-share')?.addEventListener('click', shareEstimatePDF);
