@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Калькулятор стоимости работ — Nord Чеб</title>
-  <link rel="stylesheet" href="style.css?23.09.2025.06">
+  <link rel="stylesheet" href="style.css?23.09.2025.07">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -59,8 +59,8 @@
   </main>
 
   <div id="scrollFab" class="scroll-fab" role="button" aria-label="Прокрутить страницу" title="Вверх">↑</div>
-  <footer>23.09.2025.06 • © Суперкондиционерщик Вано</footer>
-<script src="script.js?23.09.2025.06"></script>
+  <footer>23.09.2025.07 • © Суперкондиционерщик Вано</footer>
+<script src="script.js?23.09.2025.07"></script>
   <script>
   // Данные — MAIN и EXTRA
   const MAIN = [
@@ -107,9 +107,37 @@
     </script>
 
 
+  
   <script>
-    buildMainWithExtras(MAIN);
-    buildTable('#table-extra', EXTRA);
+  (function(){
+    function _rowHTML(r){
+      const id = 'qty-' + Math.random().toString(36).slice(2,7);
+      return `<tr><td>${r.name}</td><td><input id="${id}" type="number" min="0" step="${r.step||1}" value="0"></td><td>${r.unit}</td><td class="price">${(r.price||0).toLocaleString('ru-RU')}</td><td class="sum">0</td></tr>`;
+    }
+    function _simpleBuild(selector, rows){
+      var tbody = document.querySelector(selector + ' tbody'); if (!tbody) return;
+      tbody.innerHTML = rows.map(_rowHTML).join('');
+    }
+    try { if (typeof buildMainWithExtras === 'function'){ buildMainWithExtras(MAIN); } else { throw 1; } }
+    catch(e){
+      try {
+        var rows = [];
+        var map = {'07-09':null,'12':null,'18':null};
+        try{
+          var EXTRA_MAP = {
+            '07-09': { name:'Дополнительная трасса (за 1 м) 07–09 BTU', unit:'п.м.', price:1500 },
+            '12':    { name:'Дополнительная трасса (за 1 м) 12 BTU',    unit:'п.м.', price:1700 },
+            '18':    { name:'Дополнительная трасса (за 1 м) 18 BTU',    unit:'п.м.', price:1900 }
+          };
+          map = EXTRA_MAP;
+        }catch(_){}
+        MAIN.forEach(m => { rows.push(m); if(map['07-09']||map['12']||map['18']){ if(/07-09/.test(m.name)) rows.push(map['07-09']); else if(/18/.test(m.name)) rows.push(map['18']); else rows.push(map['12']); } });
+        _simpleBuild('#table-main', rows);
+      } catch(_) {}
+    }
+    try { if (typeof buildTable === 'function'){ buildTable('#table-extra', EXTRA); } else { throw 1; } }
+    catch(e){ _simpleBuild('#table-extra', EXTRA); }
+  })();
   </script>
 
 </body>
