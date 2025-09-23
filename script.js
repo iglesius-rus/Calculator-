@@ -6,24 +6,6 @@ const _themeBtn = document.getElementById('theme-toggle'); if (_themeBtn) _theme
 try { const savedTheme = localStorage.getItem('theme'); if (savedTheme === 'light') document.body.classList.remove('dark'); } catch(e){}
 
 /* Аккордеон */
-
-function ensureAddressLine(){
-  try {
-    const val = (document.getElementById('address-input')?.value?.trim() 
-              || document.getElementById('estimate-address')?.value?.trim() 
-              || '');
-    const wrap = document.getElementById('estimate-body');
-    if (!wrap) return;
-    const id = 'estimate-address-line';
-    let line = document.getElementById(id);
-    if (val){
-      if (!line) { line = document.createElement('div'); line.id = id; line.className = 'kicker'; wrap.appendChild(line); }
-      line.textContent = 'Адрес: ' + val;
-    } else if (line) {
-      line.remove();
-    }
-  } catch(e){}
-}
 function setMaxHeight(el, open) { if (open) el.style.maxHeight = el.scrollHeight + 'px'; else el.style.maxHeight = '0px'; }
 function scrollToPanel(panel){ panel.scrollIntoView({ behavior:'smooth', block:'start' }); }
 function saveState(){ try { const openIds = Array.from(document.querySelectorAll('.content-section.open')).map(p => p.id); localStorage.setItem('openPanels', JSON.stringify(openIds)); } catch(e){} }
@@ -74,9 +56,9 @@ function rowHTML(r){
 function buildMainWithExtras(MAIN){
   const tbody = document.querySelector('#table-main tbody');
   const EXTRA_MAP = {
-    '07-09': { name:'Дополнительная трасса (за 1 м) 07–09 BTU', unit:'п.м.', price:1500 },
-    '12':    { name:'Дополнительная трасса (за 1 м) 12 BTU',     unit:'п.м.', price:1700 },
-    '18':    { name:'Дополнительная трасса (за 1 м) 18 BTU',     unit:'п.м.', price:1700 }
+    '07-09': { name:'Дополнительная трасса (за 1 м) 07–09', unit:'п.м.', price:1500 },
+    '12':    { name:'Дополнительная трасса (за 1 м) 12',     unit:'п.м.', price:1700 },
+    '18':    { name:'Дополнительная трасса (за 1 м) 18',     unit:'п.м.', price:1700 }
   };
   const keyOf = (name)=> name.includes('07-09') ? '07-09' : (name.includes('12') && !name.includes('012')) ? '12' : '18';
   const rows = [];
@@ -84,7 +66,7 @@ function buildMainWithExtras(MAIN){
   tbody.innerHTML = rows.map(r => rowHTML(r)).join('');
 }
 
-function buildTable(id, rows){ const tbody = document.querySelector(id + ' tbody'); if (!tbody) return; tbody.innerHTML = rows.map(r=>rowHTML(r)).join(''); }
+function buildTable(id, rows){ const tbody = document.querySelector(id + ' tbody'); tbody.innerHTML = rows.map(r=>rowHTML(r)).join(''); }
 
 function recalc(){
   let total = 0;
@@ -142,7 +124,13 @@ function estimateToPlainText(){
 function attachEstimateUI(){
   const btnEstimate = document.getElementById('btn-estimate');
   const btnCopy = document.getElementById('btn-copy-estimate');
-   }
+  const btnPdf = document.getElementById('btn-estimate-pdf');
+  if (btnEstimate){ btnEstimate.addEventListener('click', () => { buildEstimate(); }); }
+  if (btnCopy){
+    btnCopy.addEventListener('click', async () => {
+      if (!document.querySelector('#estimate-body table')) buildEstimate();
+      const text = estimateToPlainText();
+      if (!text){ btnCopy.textContent='Нет данных'; setTimeout(()=>btnCopy.textContent='Скопировать',1200); return; }
       try { await navigator.clipboard.writeText(text); btnCopy.textContent='Скопировано ✅'; setTimeout(()=>btnCopy.textContent='Скопировать',1500); }
       catch(e){
         const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta);
@@ -390,8 +378,8 @@ function downloadPDF(){
   }
   function wire(){
     document.querySelectorAll('input[type="number"]').forEach(inp => {
-      inp.oninput = () => { recalcAll(); buildEstimate(); }; /*__AUTO_BUILD_HOOK__*/
-      inp.onchange = () => { recalcAll(); buildEstimate(); }; /*__AUTO_BUILD_HOOK__*/
+      inp.oninput = recalcAll;
+      inp.onchange = recalcAll;
     });
     const btnRe = document.getElementById('btn-recalc') || [...document.querySelectorAll('button, .btn')].find(b=>/расч[её]т/i.test(b.textContent||''));
     const btnCp = document.getElementById('btn-copy')   || [...document.querySelectorAll('button, .btn')].find(b=>/копир/i.test(b.textContent||''));
@@ -405,81 +393,3 @@ function downloadPDF(){
   const mo = new MutationObserver(()=> wire());
   mo.observe(document.body, {childList:true, subtree:true});
 })();
-// Auto build when discount changes
-document.getElementById('discount-input')?.addEventListener('input', () => { recalcAll(); buildEstimate(); }); /*__DISCOUNT_BUILD__*/
-document.getElementById('discount-input')?.addEventListener('change', () => { recalcAll(); buildEstimate(); }); /*__DISCOUNT_BUILD__*/
-
-// Auto build and update address when address changes
-document.getElementById('address-input')?.addEventListener('input', () => { ensureAddressLine(); buildEstimate(); }); /*__ADDRESS_BUILD__*/
-
-
-async function loadScriptOnce(src){
-  return new Promise((resolve, reject) => {
-    if (document.querySelector(`script[src="${src}"]`)) return resolve();
-    const s = document.createElement('script'); s.src = src; s.async = true;
-    s.onload = () => resolve(); s.onerror = () => reject(new Error('Script load failed: '+src));
-    document.head.appendChild(s);
-  });
-}
-async function shareEstimatePDF(){
-  try {
-    // Ensure estimate is built
-    if (!document.querySelector('#estimate-body table')) { if (typeof buildEstimate==='function') buildEstimate(); }
-    const el = document.querySelector('#estimate-body');
-    if (!el) { alert('Смета пуста'); return; }
-    // Load libs
-    await loadScriptOnce('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js');
-    await loadScriptOnce('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js');
-    const addr = (document.getElementById('address-input')?.value?.trim() || '').replace(/\s+/g,' ').trim();
-    const baseName = addr ? `Смета — ${addr}` : 'Смета';
-    const safeName = baseName.replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g,' ').trim();
-    const canvas = await html2canvas(el, { scale: 2 });
-    const imgData = canvas.toDataURL('image/png');
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ unit:'mm', format:'a4', orientation:'p' });
-    const pageW = pdf.internal.pageSize.getWidth();
-    const pageH = pdf.internal.pageSize.getHeight();
-    const margin = 10;
-    const imgW = pageW - margin*2;
-    const imgH = canvas.height * imgW / canvas.width;
-    let y = margin;
-    if (imgH <= pageH - margin*2){
-      pdf.addImage(imgData, 'PNG', margin, y, imgW, imgH, undefined, 'FAST');
-    } else {
-      // paginate
-      let hLeft = imgH; let pos = margin;
-      const pageHeight = pageH - margin*2;
-      let sX = 0, sY = 0, sW = canvas.width, sH = canvas.width * pageHeight / imgW;
-      const onePageCanvas = document.createElement('canvas');
-      const ctx = onePageCanvas.getContext('2d');
-      while (hLeft > 0){
-        onePageCanvas.width  = canvas.width;
-        onePageCanvas.height = Math.min(sH, canvas.height - sY);
-        ctx.clearRect(0,0,onePageCanvas.width, onePageCanvas.height);
-        ctx.drawImage(canvas, sX, sY, sW, onePageCanvas.height, 0, 0, onePageCanvas.width, onePageCanvas.height);
-        const pageImg = onePageCanvas.toDataURL('image/png');
-        pdf.addImage(pageImg, 'PNG', margin, margin, imgW, pageHeight, undefined, 'FAST');
-        hLeft -= pageHeight;
-        sY += onePageCanvas.height;
-        if (hLeft > 0) pdf.addPage();
-      }
-    }
-    const blob = pdf.output('blob');
-    const file = new File([blob], `${safeName}.pdf`, { type: 'application/pdf' });
-    if (navigator.canShare && navigator.canShare({ files:[file] })){
-      await navigator.share({ files:[file], title: safeName, text: 'Смета' });
-    } else {
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `${safeName}.pdf`;
-      a.rel = 'noopener';
-      document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 2000);
-      alert('Ваш браузер не поддерживает системный «Поделиться». Файл сохранён локально.');
-    }
-  } catch(e){
-    console.error(e);
-    alert('Не удалось сформировать PDF. Проверьте доступ к сети и попробуйте ещё раз.');
-  }
-}
-
-document.getElementById('btn-share')?.addEventListener('click', shareEstimatePDF);
