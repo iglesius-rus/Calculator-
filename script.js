@@ -43,9 +43,19 @@ function _parseMoney(t){
   return Number(s) || 0;
 }
 function rowHTML(r){
+  const priceCell = r && r.editablePrice
+    ? `<input type="number" class="price-input" inputmode="decimal" min="0" step="1" value="${(r.price ?? 0)}"> ₽`
+    : `${format(r.price || 0)} ₽`;
   return `
     <tr>
       <td data-label="Наименование работ">${r.name}</td>
+      <td data-label="Кол-во"><input type="number" inputmode="numeric" pattern="[0-9]*" min="0" step="1" value=""></td>
+      <td data-label="Ед. изм.">${r.unit}</td>
+      <td class="price" data-label="Цена ед.">${priceCell}</td>
+      <td class="sum" data-sum="0" data-label="Цена">0 ₽</td>
+    </tr>`;
+}
+</td>
       <td data-label="Кол-во"><input type="number" inputmode="numeric" pattern="[0-9]*" min="0" step="1" value=""></td>
       <td data-label="Ед. изм.">${r.unit}</td>
       <td class="price" data-label="Цена ед.">${format(r.price)} ₽</td>
@@ -57,6 +67,20 @@ function buildMainWithExtras(MAIN){
   const tbody = document.querySelector('#table-main tbody');
   const EXTRA_MAP = {
     '07-09': { name:'Дополнительная трасса (за 1 м) 07–09 (BTU)', unit:'п.м.', price:1500 },
+    '12':    { name:'Дополнительная трасса (за 1 м) 12 (BTU)',     unit:'п.м.', price:1700 },
+    '18':    { name:'Дополнительная трасса (за 1 м) 18 (BTU)',     unit:'п.м.', price:1700 }
+  };
+  const keyOf = (name)=> name.includes('07-09') ? '07-09' : (name.includes('12') && !name.includes('012')) ? '12' : '18';
+  const rows = [];
+  MAIN.forEach(m => {
+    rows.push(m);
+    if (/Монтаж настенного кондиционера/.test(m.name)) {
+      rows.push(EXTRA_MAP[keyOf(m.name)]);
+    }
+  });
+  tbody.innerHTML = rows.map(r => rowHTML(r)).join('');
+}
+,
     '12':    { name:'Дополнительная трасса (за 1 м) 12 (BTU)',     unit:'п.м.', price:1700 },
     '18':    { name:'Дополнительная трасса (за 1 м) 18 (BTU)',     unit:'п.м.', price:1700 }
   };
@@ -299,7 +323,14 @@ function downloadPDF(){
     document.querySelectorAll('#table-main tbody tr, #table-extra tbody tr').forEach(tr => {
       const inp = tr.querySelector('input');
       const qty = parseFloat(inp && inp.value ? String(inp.value).replace(',', '.') : '0') || 0;
-      const price = _parseMoney(tr.querySelector('.price')?.textContent);
+      const priceCell = tr.querySelector('.price');
+      let price = 0;
+      const priceInput = priceCell ? priceCell.querySelector('input.price-input') : null;
+      if (priceInput) {
+        price = parseFloat(String(priceInput.value).replace(',', '.')) || 0;
+      } else {
+        price = _parseMoney(priceCell ? priceCell.textContent : '');
+      };
       const sum = Math.max(0, qty) * price;
       const cell = tr.querySelector('.sum');
       if (cell){
