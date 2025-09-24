@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Калькулятор стоимости работ — Nord Чеб</title>
-<link rel="stylesheet" href="style.css?v006"/>
+<link rel="stylesheet" href="style.css?v007"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
@@ -58,18 +58,18 @@
 </main>
 
 <div id="scrollFab" class="scroll-fab" role="button" aria-label="Прокрутить страницу" title="Вверх">↑</div>
-<footer>Версия: 2409_006<br/>© Суперкондиционерщик Вано 2025</footer>
+<footer>Версия: 2409_007<br/>© Суперкондиционерщик Вано 2025</footer>
 
-<script src="script.js?v006"></script>
+<script src="script.js?v007"></script>
 <script>
   // Данные — MAIN и EXTRA
   const MAIN = [
     { name:'Монтаж настенного кондиционера 07-09 BTU', unit:'компл.', price:12000 },
     { name:'Монтаж настенного кондиционера 12 BTU', unit:'компл.', price:14000 },
-    { name:'Монтаж настенного кондиционера 18 BTU', unit:'компл.', price:16000 },
-    { name:'Монтаж корзины', unit:'шт.', price:0, editablePrice:true }
+    { name:'Монтаж настенного кондиционера 18 BTU', unit:'компл.', price:16000 }
   ];
-  const EXTRA = [
+
+  let EXTRA = [
     { name:'Автовышка (от 3 часов)', unit:'ч.', price:2000 },
     { name:'Демонтаж внутреннего/наружного блока (за каждый)', unit:'блок', price:2000 },
     { name:'Демонтаж кондиционера 07–12', unit:'шт.', price:3000 },
@@ -81,6 +81,7 @@
     { name:'Каждый дополнительный выезд', unit:'выезд', price:1000 },
     { name:'Короб ДКС', unit:'п.м.', price:1200 },
     { name:'Монтаж дополнительного дренажа без короба', unit:'п.м.', price:150 },
+    { name:'Монтаж корзины', unit:'шт.', price:0, editablePrice:true },
     { name:'Монтаж наружного блока на вентилируемый фасад', unit:'услуга', price:3500 },
     { name:'Пайка фреоновых труб (за каждую)', unit:'пайка', price:500 },
     { name:'Потолок «Армстронг» (разборка/сборка)', unit:'шт.', price:200 },
@@ -98,6 +99,9 @@
     { name:'Штроба под дренаж в кирпиче', unit:'п.м.', price:600 },
     { name:'Элементы короба ДКС', unit:'шт.', price:350 }
   ];
+
+  // Сортировка EXTRA по алфавиту (русский)
+  EXTRA = EXTRA.sort((a,b) => a.name.localeCompare(b.name, 'ru'));
 
   // Построение таблиц
   buildMainWithExtras(MAIN);

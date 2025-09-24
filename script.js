@@ -212,7 +212,7 @@ function attachEstimateUI(){
       w.document.open(); w.document.write(html); w.document.close();
     });
   }
-  document.querySelectorAll('input[type="number"]').forEach(inp => {
+  document.querySelectorAll('input[type="number"], .price-input').forEach(inp => {
     inp.addEventListener('input', recalcAll);
     inp.addEventListener('change', recalcAll);
   });
