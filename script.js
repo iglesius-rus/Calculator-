@@ -164,7 +164,7 @@ function estimateToPlainText(){
       rows.push(`${tds[0].textContent.trim()} — ${tds[1].textContent.trim()} × ${tds[2].textContent.trim()} = ${tds[3].textContent.trim()}`);
     }
   });
-  const address = document.getElementById('estimate-address')?.value?.trim();
+  const address = document.getElementById('address-input')?.value?.trim();
   const totalLine = wrap.querySelector('tbody tr:last-child td:last-child')?.textContent?.trim();
   return (rows.join('\n') + (totalLine ? `\nИтого: ${totalLine}` : '') + (address ? `\nАдрес: ${address}` : '')).trim();
 }
@@ -189,7 +189,7 @@ function attachEstimateUI(){
     btnPdf.addEventListener('click', () => {
       if (!document.querySelector('#estimate-body table')) buildEstimate();
       const wrap = document.getElementById('estimate-body');
-      const address = document.getElementById('estimate-address')?.value?.trim() || '';
+      const address = document.getElementById('address-input')?.value?.trim() || '';
       if (!wrap || !wrap.querySelector('table')) { btnPdf.textContent='Нет данных'; setTimeout(()=>btnPdf.textContent='Скачать PDF',1200); return; }
       const inner = wrap.innerHTML.replace(/<\/script>/ig, '<\\/script>');
       const title = 'Смета' + (address ? ' — ' + address : '');
