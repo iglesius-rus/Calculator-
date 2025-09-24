@@ -1,65 +1,59 @@
 <!DOCTYPE html>
+
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Калькулятор стоимости работ — Nord Чеб</title>
-  <link rel="stylesheet" href="style.css?v024">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Калькулятор стоимости работ — Nord Чеб</title>
+<link href="style.css?v024" rel="stylesheet"/>
+<meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control"/>
+<meta content="no-cache" http-equiv="Pragma"/>
+<meta content="0" http-equiv="Expires"/>
 </head>
 <body class="dark">
-  <main>
-    <div class="container">
-      <h1 style="margin:0 0 8px;">Калькулятор стоимости работ</h1>
-      <div class="kicker">главная страница</div>
+<main>
+<div class="container">
+<h1 style="margin:0 0 8px;">Калькулятор стоимости работ</h1>
+<div class="kicker">главная страница</div>
+<div class="section-title">Основные работы</div>
+<table class="calc-table" id="table-main">
+<thead>
+<tr><th>Наименование работ</th><th>Кол-во</th><th>Ед. изм.</th><th>Цена ед.</th><th>Цена</th></tr>
+</thead>
+<tbody></tbody>
+</table>
+<div class="section-title">Дополнительные работы</div>
+<table class="calc-table" id="table-extra">
+<thead>
+<tr><th>Наименование работ</th><th>Кол-во</th><th>Ед. изм.</th><th>Цена ед.</th><th>Цена</th></tr>
+</thead>
+<tbody></tbody>
+</table>
+<div class="total-line"><b>Итого:</b> <span id="grand-total">0</span> ₽</div>
+<div class="discount-wrap" style="display:flex;gap:10px;justify-content:flex-end;align-items:center;flex-wrap:wrap;margin-top:8px;">
+<label class="kicker" for="discount-input" style="margin-right:6px;">Персональная скидка, %</label>
+<input id="discount-input" max="100" min="0" placeholder="%" step="1" style="width:110px; padding:10px 12px; border-radius:12px; border:2px solid; border-color: var(--input-border,#2a2b2f); background: var(--input-bg,#111); color: #eaeaea; font-size:16px;" type="number"/>
+</div>
+<div class="kicker" id="discount-line" style="display:none; text-align:right; margin-top:6px;">Скидка <b><span id="discount-pct">0</span>%</b>: −<b><span id="discount-amount">0</span> ₽</b>. Итого со скидкой: <b><span id="grand-with-discount">0</span> ₽</b></div>
+<div class="est-actions" style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap;">
 
-      <div class="section-title">Основные работы</div>
-      <table class="calc-table" id="table-main">
-        <thead>
-          <tr><th>Наименование работ</th><th>Кол-во</th><th>Ед. изм.</th><th>Цена ед.</th><th>Цена</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-
-      <div class="section-title">Дополнительные работы</div>
-      <table class="calc-table" id="table-extra">
-        <thead>
-          <tr><th>Наименование работ</th><th>Кол-во</th><th>Ед. изм.</th><th>Цена ед.</th><th>Цена</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-
-      <div class="total-line"><b>Итого:</b> <span id="grand-total">0</span> ₽</div>
-      <div class="discount-wrap" style="display:flex;gap:10px;justify-content:flex-end;align-items:center;flex-wrap:wrap;margin-top:8px;">
-        <label for="discount-input" class="kicker" style="margin-right:6px;">Персональная скидка, %</label>
-        <input id="discount-input" type="number" min="0" max="100" step="1" placeholder="%" style="width:110px; padding:10px 12px; border-radius:12px; border:2px solid; border-color: var(--input-border,#2a2b2f); background: var(--input-bg,#111); color: #eaeaea; font-size:16px;">
-      </div>
-      <div class="kicker" id="discount-line" style="display:none; text-align:right; margin-top:6px;">Скидка <b><span id="discount-pct">0</span>%</b>: −<b><span id="discount-amount">0</span> ₽</b>. Итого со скидкой: <b><span id="grand-with-discount">0</span> ₽</b></div>
-
-      <div class="est-actions" style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap;">
-        <button id="btn-estimate" class="btn-outline">Рассчёт</button>
-        <button id="btn-copy-estimate" class="btn-outline" id="btn-copy">Скопировать</button>
-        <button id="btn-estimate-pdf" class="btn-outline" id="btn-pdf">Скачать PDF</button>
-      </div>
-      <div id="estimate" class="container hidden" style="margin-top:12px;">
-        <h2 style="margin:0 0 8px;">Смета</h2>
-        <div id="estimate-body">Пока ничего не выбрано.</div>
-        <div class="est-meta" style="margin-top:12px;">
-          <label for="estimate-address" style="display:block;font-size:14px;opacity:.85;margin-bottom:6px;">Адрес:</label>
-          <input id="estimate-address" type="text" placeholder="Укажите адрес объекта" style="width:100%;max-width:600px;">
-        </div>
-      </div>
-    </div>
-  </main>
-
-  <div id="scrollFab" class="scroll-fab" role="button" aria-label="Прокрутить страницу" title="Вверх">↑</div>
-
-  <footer>Calc_v_1.100</footer>
-
-  <script src="script.js?v024"></script>
-  <script>
+<button class="btn-outline" id="btn-copy">Скопировать</button>
+<button class="btn-outline" id="btn-pdf">Скачать PDF</button>
+</div>
+<div class="container hidden" id="estimate" style="margin-top:12px;">
+<h2 style="margin:0 0 8px;">Смета</h2>
+<div id="estimate-body">Пока ничего не выбрано.</div>
+<div class="est-meta" style="margin-top:12px;">
+<label for="estimate-address" style="display:block;font-size:14px;opacity:.85;margin-bottom:6px;">Адрес:</label>
+<input id="estimate-address" placeholder="Укажите адрес объекта" style="width:100%;max-width:600px;" type="text"/>
+</div>
+</div>
+</div>
+</main>
+<div aria-label="Прокрутить страницу" class="scroll-fab" id="scrollFab" role="button" title="Вверх">↑</div>
+<footer>Копирайт Суперкондиционерщик Вано 2025</footer>
+<script src="script.js?v024"></script>
+<script>
   // Данные — MAIN и EXTRA
   const MAIN = [
     { name:'Монтаж настенного кондиционера 07-09 BTU', unit:'компл.', price:12000 },

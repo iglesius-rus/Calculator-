@@ -82,7 +82,7 @@ function recalc(){
   const wrap = document.getElementById('estimate-body');
   if (!wrap) return;
   if (!rows.length){
-    wrap.innerHTML = '<p class="kicker">Пока ничего не выбрано. Укажите количество и нажмите «Рассчёт».</p>';
+    wrap.innerHTML = '<p class="kicker">Пока ничего не выбрано. Укажите количество. Смета формируется автоматически при копировании или печати в PDF.</p>';
   } else {
     let total = 0;
     const items = rows.map(r => { total += r.sum; return (
@@ -252,14 +252,14 @@ function downloadPDF(){
   const win = window.open('', '_blank');
   if (!win) { alert('Разрешите всплывающие окна для печати в PDF'); return; }
   const html = document.querySelector('#estimate-body').innerHTML || '<p>Смета пуста</p>';
-  win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Расчёт</title>
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Смета</title>
   <style>
     body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;padding:20px;}
     table{width:100%;border-collapse:collapse}
     th,td{border:1px solid #ccc;padding:8px;}
     th{text-align:left}
     .right{text-align:right}
-  </style></head><body><h2>Расчёт</h2>${html}</body></html>`);
+  </style></head><body><h2>Смета</h2>${html}</body></html>`);
   win.document.close();
   win.focus();
   setTimeout(() => win.print(), 300);
@@ -326,7 +326,7 @@ function downloadPDF(){
     const wrap = document.getElementById('estimate-body');
     if (!wrap) return;
     if (!rows.length){
-      wrap.innerHTML = '<p class="kicker">Пока ничего не выбрано. Укажите количество и нажмите «Рассчёт».</p>';
+      wrap.innerHTML = '<p class="kicker">Пока ничего не выбрано. Укажите количество. Смета формируется автоматически при копировании или печати в PDF.</p>';
     } else {
       let total = 0;
       const items = rows.map(r => { total += r.sum; return (
@@ -372,8 +372,8 @@ function downloadPDF(){
     const win = window.open('', '_blank');
     if (!win) { alert('Разрешите всплывающие окна для печати в PDF'); return; }
     const html = document.querySelector('#estimate-body')?.innerHTML || '<p>Смета пуста</p>';
-    win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Расчёт</title>
-    <style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;padding:20px;}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:8px;}th{text-align:left}.right{text-align:right}</style></head><body><h2>Расчёт</h2>${html}</body></html>`);
+    win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Смета</title>
+    <style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;padding:20px;}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:8px;}th{text-align:left}.right{text-align:right}</style></head><body><h2>Смета</h2>${html}</body></html>`);
     win.document.close(); win.focus(); setTimeout(()=>win.print(), 300);
   }
   function wire(){
