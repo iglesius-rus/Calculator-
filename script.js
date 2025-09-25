@@ -166,7 +166,7 @@ function estimateToPlainText(){
   });
   const address = document.getElementById('estimate-address')?.value?.trim();
   const totalLine = wrap.querySelector('tbody tr:last-child td:last-child')?.textContent?.trim();
-  return (rows.join('\n')).trim();
+  return (rows.join('\n') + (totalLine ? `\nИтого: ${totalLine}` : '') + (address ? `\nАдрес: ${address}` : '')).trim();
 }
 
 function attachEstimateUI(){
@@ -192,8 +192,8 @@ function attachEstimateUI(){
       const address = document.getElementById('estimate-address')?.value?.trim() || '';
       if (!wrap || !wrap.querySelector('table')) { btnPdf.textContent='Нет данных'; setTimeout(()=>btnPdf.textContent='Скачать PDF',1200); return; }
       const inner = wrap.innerHTML.replace(/<\/script>/ig, '<\\/script>');
-      const title = "Смета";
-      const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Смета</title>`
+      const title = 'Смета' + (address ? ' — ' + address : '');
+      const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title>
         <style>
           body { font-family: Arial, sans-serif; margin: 24px; }
           h1 { margin: 0 0 10px; font-size: 20px; }
@@ -202,7 +202,7 @@ function attachEstimateUI(){
           th, td { border-bottom: 1px solid #ccc; padding: 8px; text-align: left; }
           th { background: #f5f5f5; }
         </style></head><body>
-        
+        <h1>${title}</h1>
         <div class="meta">Дата: ${new Date().toLocaleString('ru-RU')}</div>
         ${address ? `<div class="meta"><b>Адрес:</b> ${address}</div>` : ''}
         ${inner}
@@ -227,7 +227,7 @@ function initScrollFab(){
     const doc = document.documentElement;
     const maxScroll = Math.max(document.body.scrollHeight, doc.scrollHeight) - window.innerHeight;
     const y = window.scrollY || doc.scrollTop || 0;
-    if (maxScroll < 200) { fab.style.display = 'none'; return; } else { fab.style.display = 'grid'; }
+    if (maxScroll < 50) { fab.style.display = 'none'; return; } else { fab.style.display = 'grid'; }
     const pos = y / (maxScroll || 1);
     if (pos < 0.20) { fab.dataset.mode = 'down'; fab.textContent = '↓'; fab.title = 'Вниз'; fab.setAttribute('aria-label','Прокрутить вниз'); }
     else { fab.dataset.mode = 'up'; fab.textContent = '↑'; fab.title = 'Вверх'; fab.setAttribute('aria-label','Прокрутить вверх'); }
@@ -246,3 +246,49 @@ function initScrollFab(){
   });
 }
 document.addEventListener('DOMContentLoaded', initScrollFab);
+
+// === Theme toggle with persistence ===
+(function(){
+  const KEY = 'theme';
+  const body = document.body;
+  try {
+    const saved = localStorage.getItem(KEY);
+    if (saved === 'light') body.classList.remove('dark');
+    if (saved === 'dark') body.classList.add('dark');
+  } catch(e){ /* storage might be blocked, survive silently */ }
+
+  function updateIconTitle(){
+    const btn = document.getElementById('themeToggle');
+    if (!btn) return;
+    const dark = body.classList.contains('dark');
+    btn.title = dark ? 'Тёмная тема' : 'Светлая тема';
+    btn.setAttribute('aria-pressed', String(dark));
+  }
+
+  document.addEventListener('click', function(e){
+    if (e.target && (e.target.id === 'themeToggle' || e.target.closest && e.target.closest('#themeToggle'))){
+      body.classList.toggle('dark');
+      try { localStorage.setItem('theme', body.classList.contains('dark') ? 'dark' : 'light'); } catch(e){}
+      updateIconTitle();
+    }
+  });
+
+  updateIconTitle();
+})();
+
+// === Quick actions ===
+(function(){
+  const byId = id => document.getElementById(id);
+  function proxyClick(srcId, dstId){
+    const src = byId(srcId), dst = byId(dstId);
+    if (src && dst){
+      src.addEventListener('click', () => dst.click());
+    }
+  }
+  // When DOM is ready, wire quickbar buttons to main actions
+  document.addEventListener('DOMContentLoaded', function(){
+    proxyClick('quick-copy', 'btn-copy');
+    proxyClick('quick-pdf',  'btn-pdf');
+  });
+})();
+
