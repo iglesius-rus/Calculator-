@@ -16,8 +16,7 @@ body.dark .calc-table input[type="number"] { --input-border:#fff; --input-bg:#0f
 body:not(.dark) .calc-table input[type="number"] { --input-border:#000; --input-bg:#fff; }
 .total-line {text-align:right; font-size:20px; margin-top:12px; font-weight:700;}
 
-.scroll-fab{
-  position: fixed; left: 16px; bottom: 16px; width: 48px; height: 48px;
+xpx; width: 48px; height: 48px;
   display: grid; place-items: center; font-size: 22px; line-height: 1;
   border-radius: 9999px; cursor: pointer; user-select: none; z-index: 50;
   background: var(--header); color: var(--text);
@@ -82,8 +81,18 @@ body.dark .icon-btn .icon-moon {display:inline;}
 .quickbar {position:sticky; bottom:0; z-index:40; display:flex; gap:8px; justify-content:flex-end; align-items:center;
   padding:10px 12px; background:var(--header); border-top:1px solid #0001;}
 body.dark .quickbar {border-color:#fff1;}
-.btn-primary, .btn-outline {padding:8px 14px; border-radius:10px; border:1px solid #0002; background:#0a84ff; color:#fff; cursor:pointer;}
+
 .btn-outline {background:transparent; color:var(--text);}
-body.dark .btn-primary {background:#0a84ff;}
+body.dark 
 body.dark .btn-outline {border-color:#fff2;}
+
+.quickbar .btn-primary { 
+  background: transparent; 
+  color: var(--text); 
+  border: 1px solid rgba(0,0,0,.2); 
+}
+body.dark .quickbar .btn-primary { 
+  border-color: rgba(255,255,255,.2); 
+  color: var(--text); 
+}
 
