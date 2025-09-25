@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Калькулятор стоимости работ — Nord Чеб</title>
-<link rel="stylesheet" href="style.css?v003"/>
+<link rel="stylesheet" href="style.css?v004"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
@@ -54,6 +54,12 @@
       Скидка <b><span id="discount-pct">0</span>%</b>: −<b><span id="discount-amount">0</span> ₽</b>. Итого со скидкой: <b><span id="grand-with-discount">0</span> ₽</b>
     </div>
 
+    <div class="est-meta" id="address-under-discount" style="margin-top:12px;">
+      <label for="estimate-address" style="display:block;font-size:14px;opacity:.85;margin-bottom:6px;">Адрес:</label>
+      <input id="estimate-address" type="text" placeholder="Укажите адрес объекта" style="width:100%;max-width:600px;"/>
+    </div>
+
+
     <div class="est-actions" style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap;">
       <button class="btn-outline" id="btn-copy">Скопировать</button>
       <button class="btn-outline" id="btn-pdf">Скачать PDF</button>
@@ -61,12 +67,7 @@
 
     <div id="estimate" class="container hidden" style="margin-top:12px;">
       <h2 style="margin:0 0 8px;">Смета</h2>
-      <div id="estimate-body">Пока ничего не выбрано.</div>
-      <div class="est-meta" style="margin-top:12px;">
-        <label for="estimate-address" style="display:block;font-size:14px;opacity:.85;margin-bottom:6px;">Адрес:</label>
-        <input id="estimate-address" type="text" placeholder="Укажите адрес объекта" style="width:100%;max-width:600px;"/>
-      </div>
-    </div>
+      <div id="estimate-body">Пока ничего не выбрано.</div></div>
   </div>
 </main>
 <div id="quickbar" class="quickbar">
@@ -76,9 +77,9 @@
 
 
 <div id="scrollFab" class="scroll-fab" role="button" aria-label="Прокрутить страницу" title="Вверх">↑</div>
-<footer>Версия: 2509_003<br/>© Суперкондиционерщик Вано 2025</footer>
+<footer>Версия: 2509_004<br/>© Суперкондиционерщик Вано 2025</footer>
 
-<script src="script.js?v003"></script>
+<script src="script.js?v004"></script>
 <script>
   // Данные — MAIN и EXTRA
   const MAIN = [
