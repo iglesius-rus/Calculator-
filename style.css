@@ -116,7 +116,7 @@ body.dark
 .scroll-fab{
   position: fixed;
   left: 16px;
-  bottom: 70px;
+  hpx;
   width: 48px;
   height: 48px;
   display: grid;
