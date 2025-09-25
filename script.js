@@ -227,7 +227,7 @@ function initScrollFab(){
     const doc = document.documentElement;
     const maxScroll = Math.max(document.body.scrollHeight, doc.scrollHeight) - window.innerHeight;
     const y = window.scrollY || doc.scrollTop || 0;
-    if (maxScroll < 200) { fab.style.display = 'none'; return; } else { fab.style.display = 'grid'; }
+    if (maxScroll < 50) { fab.style.display = 'none'; return; } else { fab.style.display = 'grid'; }
     const pos = y / (maxScroll || 1);
     if (pos < 0.20) { fab.dataset.mode = 'down'; fab.textContent = '↓'; fab.title = 'Вниз'; fab.setAttribute('aria-label','Прокрутить вниз'); }
     else { fab.dataset.mode = 'up'; fab.textContent = '↑'; fab.title = 'Вверх'; fab.setAttribute('aria-label','Прокрутить вверх'); }

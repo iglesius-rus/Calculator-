@@ -113,10 +113,11 @@ body.dark
   .quickbar .btn-outline:hover { background: rgba(0,0,0,.06); }
 }
 
+/* Restored scroll FAB */
 .scroll-fab{
   position: fixed;
   left: 16px;
-  hpx;
+  bottom: 50px;
   width: 48px;
   height: 48px;
   display: grid;
@@ -137,4 +138,3 @@ body.dark
 body.dark .scroll-fab{ border-color: rgba(255,255,255,.2); }
 .scroll-fab:hover{ transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0,0,0,.22); }
 .scroll-fab:active{ transform: translateY(0); }
-
