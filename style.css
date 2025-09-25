@@ -64,3 +64,26 @@ body.dark .scroll-fab{ border-color: rgba(255,255,255,.2); }
 }
 
 .hidden{display:none !important;}
+
+/* === Topbar with theme toggle === */
+.topbar {position:sticky; top:0; z-index:50; display:flex; align-items:center; justify-content:space-between;
+  padding:10px 12px; background:var(--header); border-bottom:1px solid #0001; backdrop-filter:saturate(120%) blur(6px);}
+body.dark .topbar {border-color:#fff1;}
+.app-title {font-weight:700; opacity:.85;}
+.icon-btn {display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:10px;
+  border:1px solid #0002; background:transparent; color:var(--text); cursor:pointer;}
+body.dark .icon-btn {border-color:#fff2;}
+.icon-btn .icon-sun {display: inline;}
+.icon-btn .icon-moon {display: none;}
+body.dark .icon-btn .icon-sun {display:none;}
+body.dark .icon-btn .icon-moon {display:inline;}
+
+/* === Sticky quick actions === */
+.quickbar {position:sticky; bottom:0; z-index:40; display:flex; gap:8px; justify-content:flex-end; align-items:center;
+  padding:10px 12px; background:var(--header); border-top:1px solid #0001;}
+body.dark .quickbar {border-color:#fff1;}
+.btn-primary, .btn-outline {padding:8px 14px; border-radius:10px; border:1px solid #0002; background:#0a84ff; color:#fff; cursor:pointer;}
+.btn-outline {background:transparent; color:var(--text);}
+body.dark .btn-primary {background:#0a84ff;}
+body.dark .btn-outline {border-color:#fff2;}
+

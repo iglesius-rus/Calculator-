@@ -246,3 +246,49 @@ function initScrollFab(){
   });
 }
 document.addEventListener('DOMContentLoaded', initScrollFab);
+
+// === Theme toggle with persistence ===
+(function(){
+  const KEY = 'theme';
+  const body = document.body;
+  try {
+    const saved = localStorage.getItem(KEY);
+    if (saved === 'light') body.classList.remove('dark');
+    if (saved === 'dark') body.classList.add('dark');
+  } catch(e){ /* storage might be blocked, survive silently */ }
+
+  function updateIconTitle(){
+    const btn = document.getElementById('themeToggle');
+    if (!btn) return;
+    const dark = body.classList.contains('dark');
+    btn.title = dark ? 'Тёмная тема' : 'Светлая тема';
+    btn.setAttribute('aria-pressed', String(dark));
+  }
+
+  document.addEventListener('click', function(e){
+    if (e.target && (e.target.id === 'themeToggle' || e.target.closest && e.target.closest('#themeToggle'))){
+      body.classList.toggle('dark');
+      try { localStorage.setItem('theme', body.classList.contains('dark') ? 'dark' : 'light'); } catch(e){}
+      updateIconTitle();
+    }
+  });
+
+  updateIconTitle();
+})();
+
+// === Quick actions ===
+(function(){
+  const byId = id => document.getElementById(id);
+  function proxyClick(srcId, dstId){
+    const src = byId(srcId), dst = byId(dstId);
+    if (src && dst){
+      src.addEventListener('click', () => dst.click());
+    }
+  }
+  // When DOM is ready, wire quickbar buttons to main actions
+  document.addEventListener('DOMContentLoaded', function(){
+    proxyClick('quick-copy', 'btn-copy');
+    proxyClick('quick-pdf',  'btn-pdf');
+  });
+})();
+
