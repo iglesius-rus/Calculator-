@@ -78,3 +78,6 @@ body.dark .icon-btn {border-color:#fff2;}
 body.dark .icon-btn .icon-sun {display:none;}
 body.dark .icon-btn .icon-moon {display:inline;}
 
+
+.vano-link{color:inherit;text-decoration:underline;opacity:.85;}
+.vano-link:hover{opacity:1;}
