@@ -5,7 +5,11 @@ const _themeBtn = document.getElementById('theme-toggle'); if (_themeBtn) _theme
 });
 try { const savedTheme = localStorage.getItem('theme'); if (savedTheme === 'light') document.body.classList.remove('dark'); } catch(e){}
 
-
+/* Аккордеон */
+function setMaxHeight(el, open) { if (open) el.style.maxHeight = el.scrollHeight + 'px'; else el.style.maxHeight = '0px'; }
+function scrollToPanel(panel){ panel.scrollIntoView({ behavior:'smooth', block:'start' }); }
+function saveState(){ try { const openIds = Array.from(document.querySelectorAll('.content-section.open')).map(p => p.id); localStorage.setItem('openPanels', JSON.stringify(openIds)); } catch(e){} }
+function restoreState(){ try { const openIds = JSON.parse(localStorage.getItem('openPanels') || '[]'); openIds.forEach(id => { const panel = document.getElementById(id); const btn = panel?.previousElementSibling; if (panel && btn) { panel.classList.add('open'); setMaxHeight(panel, true); btn.classList.add('active'); btn.setAttribute('aria-expanded', 'true'); } }); } catch(e){} }
 
 // ===== Калькулятор стоимости =====
 function format(n) { return n.toLocaleString('ru-RU'); }
@@ -89,7 +93,7 @@ function applyDiscountToTotal(total){
   const da = document.getElementById('discount-amount');
   const gw = document.getElementById('grand-with-discount');
   if (line){
-    if (pct > 0) {
+    if (pct > 0){
       line.style.display = '';
       if (dp) dp.textContent = pct.toLocaleString('ru-RU');
       if (da) da.textContent = discount.toLocaleString('ru-RU');
@@ -168,43 +172,46 @@ function estimateToPlainText(){
 function attachEstimateUI(){
   const btnCopy = document.getElementById('btn-copy');
   const btnPdf = document.getElementById('btn-pdf');
-  if (btnCopy){ btnCopy.addEventListener('click', async () => { await doCopy(); }); }
-async function doCopy(){
-  if (!document.querySelector('#estimate-body table')) buildEstimate();
-  const text = estimateToPlainText();
-  const btnCopy = document.getElementById('btn-copy') || document.getElementById('quick-copy');
-  if (!text){ if(btnCopy){ btnCopy.textContent='Нет данных'; setTimeout(()=>btnCopy.textContent='Скопировать',1200); } return; }
-  try { await navigator.clipboard.writeText(text); if(btnCopy){ btnCopy.textContent='Скопировано ✅'; setTimeout(()=>btnCopy.textContent='Скопировать',1500); } }
-  catch(e){
-    const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta);
-    ta.select(); try { document.execCommand('copy'); } catch(e2){} document.body.removeChild(ta);
-    if(btnCopy){ btnCopy.textContent='Скопировано ✅'; setTimeout(()=>btnCopy.textContent='Скопировать',1500); }
+  if (btnCopy){
+    btnCopy.addEventListener('click', async () => {
+      if (!document.querySelector('#estimate-body table')) buildEstimate();
+      const text = estimateToPlainText();
+      if (!text){ btnCopy.textContent='Нет данных'; setTimeout(()=>btnCopy.textContent='Скопировать',1200); return; }
+      try { await navigator.clipboard.writeText(text); btnCopy.textContent='Скопировано ✅'; setTimeout(()=>btnCopy.textContent='Скопировать',1500); }
+      catch(e){
+        const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta);
+        ta.select(); try { document.execCommand('copy'); } catch(e2){} document.body.removeChild(ta);
+        btnCopy.textContent='Скопировано ✅'; setTimeout(()=>btnCopy.textContent='Скопировать',1500);
+      }
+    });
   }
-}
-  if (btnPdf){ btnPdf.addEventListener('click', () => { doPdf(); }); }
-async function doPdf(){
-  const w = window.open('', '_blank'); if (!w) { try{ alert('Разрешите всплывающие окна для PDF.'); }catch(e){} return; }
-if (!document.querySelector('#estimate-body table')) buildEstimate();
-  const wrap = document.getElementById('estimate-body');
-  const address = document.getElementById('estimate-address')?.value?.trim() || '';
-  const btnPdf = document.getElementById('btn-pdf') || document.getElementById('quick-pdf');
-  if (!wrap || !wrap.querySelector('table')) { if(btnPdf){ btnPdf.textContent='Нет данных'; setTimeout(()=>btnPdf.textContent='Скачать PDF',1200); } return; }
-  const inner = wrap.innerHTML.replace(/<\/script>/ig, '<\/script>');
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Смета</title>
-    <style>
-      body { font-family: Arial, sans-serif; margin: 24px; }
-      .meta { font-size: 12px; opacity: .8; margin-bottom: 8px; }
-      table { width: 100%; border-collapse: collapse; margin-top: 6px; }
-      th, td { border-bottom: 1px solid #ccc; padding: 8px; text-align: left; }
-      th { background: #f5f5f5; }
-    </style></head><body>
-    ${address ? `<div class="meta"><b>Адрес:</b> ${address}</div>` : ''}
-    ${inner}
-    <script>window.print();</script>
-    </body></html>`;
-  
-  w.document.open(); w.document.write(html); w.document.close();
-}
+  if (btnPdf){
+    btnPdf.addEventListener('click', () => {
+      if (!document.querySelector('#estimate-body table')) buildEstimate();
+      const wrap = document.getElementById('estimate-body');
+      const address = document.getElementById('estimate-address')?.value?.trim() || '';
+      if (!wrap || !wrap.querySelector('table')) { btnPdf.textContent='Нет данных'; setTimeout(()=>btnPdf.textContent='Скачать PDF',1200); return; }
+      const inner = wrap.innerHTML.replace(/<\/script>/ig, '<\\/script>');
+      const title = 'Смета' + (address ? ' — ' + address : '');
+      const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 24px; }
+          h1 { margin: 0 0 10px; font-size: 20px; }
+          .meta { font-size: 12px; opacity: .8; margin-bottom: 8px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+          th, td { border-bottom: 1px solid #ccc; padding: 8px; text-align: left; }
+          th { background: #f5f5f5; }
+        </style></head><body>
+        <h1>${title}</h1>
+        <div class="meta">Дата: ${new Date().toLocaleString('ru-RU')}</div>
+        ${address ? `<div class="meta"><b>Адрес:</b> ${address}</div>` : ''}
+        ${inner}
+        <script>window.print();</script>
+        </body></html>`;
+      const w = window.open('', '_blank'); if (!w) return;
+      w.document.open(); w.document.write(html); w.document.close();
+    });
+  }
   document.querySelectorAll('input[type="number"], .price-input').forEach(inp => {
     inp.addEventListener('input', recalcAll);
     inp.addEventListener('change', recalcAll);
@@ -220,7 +227,7 @@ function initScrollFab(){
     const doc = document.documentElement;
     const maxScroll = Math.max(document.body.scrollHeight, doc.scrollHeight) - window.innerHeight;
     const y = window.scrollY || doc.scrollTop || 0;
-    if (maxScroll < 10) { fab.style.display = 'none'; return; } else { fab.style.display = 'grid'; }
+    if (maxScroll < 200) { fab.style.display = 'none'; return; } else { fab.style.display = 'grid'; }
     const pos = y / (maxScroll || 1);
     if (pos < 0.20) { fab.dataset.mode = 'down'; fab.textContent = '↓'; fab.title = 'Вниз'; fab.setAttribute('aria-label','Прокрутить вниз'); }
     else { fab.dataset.mode = 'up'; fab.textContent = '↑'; fab.title = 'Вверх'; fab.setAttribute('aria-label','Прокрутить вверх'); }
@@ -240,20 +247,4 @@ function initScrollFab(){
 }
 document.addEventListener('DOMContentLoaded', initScrollFab);
 
-// quickbar-wire
-document.addEventListener('DOMContentLoaded', function(){
-  const qc = document.getElementById('quick-copy'); if (qc) qc.addEventListener('click', ()=>doCopy());
-  const qp = document.getElementById('quick-pdf');  if (qp) qp.addEventListener('click', ()=>doPdf());
-});
-
-// Theme toggle with persistence
-(function(){
-  const KEY='theme'; const body=document.body;
-  try{ const saved=localStorage.getItem(KEY); if(saved==='light') body.classList.remove('dark'); if(saved==='dark') body.classList.add('dark'); }catch(e){}
-  function update(){ const btn=document.getElementById('themeToggle'); if(!btn) return; const dark=body.classList.contains('dark'); btn.title=dark?'Тёмная тема':'Светлая тема'; btn.setAttribute('aria-pressed', String(dark)); }
-  document.addEventListener('click', e=>{ if(e.target.closest && e.target.closest('#themeToggle')){ body.classList.toggle('dark'); try{localStorage.setItem('theme', body.classList.contains('dark')?'dark':'light');}catch(e){} update(); } });
-  update();
-})();
-
-// Expose actions to inline handlers
 try{ window.doCopy = doCopy; window.doPdf = doPdf; }catch(e){}
