@@ -253,3 +253,6 @@ document.addEventListener('DOMContentLoaded', function(){
   document.addEventListener('click', e=>{ if(e.target.closest && e.target.closest('#themeToggle')){ body.classList.toggle('dark'); try{localStorage.setItem('theme', body.classList.contains('dark')?'dark':'light');}catch(e){} update(); } });
   update();
 })();
+
+// Expose actions to inline handlers
+try{ window.doCopy = doCopy; window.doPdf = doPdf; }catch(e){}
