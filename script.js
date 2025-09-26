@@ -267,3 +267,32 @@ document.addEventListener('input', function(e){
     if (wasOpen) buildEstimate();
   }
 });
+
+function setTheme(mode){
+  const body = document.body;
+  if(mode==='dark'){ body.classList.add('dark'); }
+  else { body.classList.remove('dark'); }
+  try{ localStorage.setItem('theme', mode); }catch(e){}
+  const btn = document.getElementById('themeToggle');
+  if(btn){
+    const dark = body.classList.contains('dark');
+    btn.title = dark ? 'Тёмная тема' : 'Светлая тема';
+    btn.setAttribute('aria-pressed', String(dark));
+  }
+}
+(function(){
+  const body = document.body;
+  let saved=null;
+  try{ saved = localStorage.getItem('theme'); }catch(e){}
+  if(saved==='dark') body.classList.add('dark');
+  else if(saved==='light') body.classList.remove('dark');
+  else body.classList.remove('dark'); // по умолчанию светлая
+  document.addEventListener('click', function(e){
+    if(e.target && (e.target.id==='themeToggle' || (e.target.closest && e.target.closest('#themeToggle')))){
+      const dark = body.classList.contains('dark');
+      setTheme(dark ? 'light' : 'dark');
+    }
+  });
+  // sync on load
+  setTheme(body.classList.contains('dark') ? 'dark' : 'light');
+})();
