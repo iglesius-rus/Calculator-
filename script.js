@@ -1,3 +1,9 @@
+// Тема
+const _themeBtn = document.getElementById('theme-toggle'); if (_themeBtn) _themeBtn.addEventListener('click', () => {
+  document.body.classList.toggle('dark');
+  try { localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light'); } catch(e){}
+});
+try { const savedTheme = localStorage.getItem('theme'); if (savedTheme === 'light') document.body.classList.remove('dark'); } catch(e){}
 
 /* Аккордеон */
 function setMaxHeight(el, open) { if (open) el.style.maxHeight = el.scrollHeight + 'px'; else el.style.maxHeight = '0px'; }
@@ -8,51 +14,31 @@ function restoreState(){ try { const openIds = JSON.parse(localStorage.getItem('
 // ===== Калькулятор стоимости =====
 function format(n) { return n.toLocaleString('ru-RU'); }
 function _parseMoney(t){
-  if (t == null) return 0;
+  if (t === null || t === undefined) return 0;
   if (typeof t === 'number') return t;
-  const s = String(t)
-    .replace(/[\s\u00A0]/g, '')
-    .replace(/[₽рР][\.\s]*|руб\.?/g, '')
-    .replace(/,/g, '.');
-  const n = parseFloat(s);
-  return Number.isFinite(n) ? n : 0;
+  const s = String(t).replace(/[\s\u00A0]/g,'').replace(/руб\.?|₽/ig,'').replace(/,/,'.');
+  return parseFloat(s) || 0;
 }
 function rowHTML(r){
   const priceCell = r.editablePrice
-    ? `<input type="number" class="price-input" min="0" step="1" value="${_parseMoney(r.price)}"> ₽`
+    ? `<input type="number" class="price-input" min="0" step="1" value="${_parseMoney(r.price)}" style="width:90px; text-align:center;"> ₽`
     : `${format(_parseMoney(r.price))} ₽`;
-  const step = (r.step ?? 1);
   return `
-    <tr data-name="${r.name}" data-unit="${r.unit}" data-price="${_parseMoney(r.price)}" data-step="${step}">
-      <td data-label="Наименование работ" aria-label="Наименование работ">${r.name}</td>
-      <td data-label="Кол-во" aria-label="Кол-во"><input type="number" inputmode="numeric" pattern="[0-9]*" min="0" step="${step}" value=""></td>
-      <td data-label="Ед. изм." aria-label="Ед. изм.">${r.unit}</td>
-      <td class="price" data-label="Цена ед." aria-label="Цена ед.">${priceCell}</td>
-      <td class="sum" data-sum="0" data-label="Цена" aria-label="Цена">0 ₽</td>
+    <tr>
+      <td data-label="Наименование работ">${r.name}</td>
+      <td data-label="Кол-во"><input type="number" inputmode="numeric" pattern="[0-9]*" min="0" step="1" value=""></td>
+      <td data-label="Ед. изм.">${r.unit}</td>
+      <td class="price" data-label="Цена ед.">${priceCell}</td>
+      <td class="sum" data-sum="0" data-label="Цена">0 ₽</td>
     </tr>`;
 }
 
-function extractBTU(name){
-  const m = String(name).match(/\b(07-09|12|18)\b/);
-  return m ? m[1] : null;
-}
 function buildMainWithExtras(MAIN){
   const tbody = document.querySelector('#table-main tbody');
   const EXTRA_MAP = {
     '07-09': { name:'Дополнительная трасса (за 1 м) 07–09 (BTU)', unit:'п.м.', price:1500 },
     '12':    { name:'Дополнительная трасса (за 1 м) 12 (BTU)',     unit:'п.м.', price:1700 },
     '18':    { name:'Дополнительная трасса (за 1 м) 18 (BTU)',     unit:'п.м.', price:1700 }
-  };
-  const rows = [];
-  MAIN.forEach(m => {
-    rows.push(m);
-    if (/BTU/i.test(m.name)){
-      const key = extractBTU(m.name) || '12';
-      rows.push(EXTRA_MAP[key]);
-    }
-  });
-  tbody.innerHTML = rows.map(r => rowHTML(r)).join('');
-}
   };
   const rows = [];
   MAIN.forEach(m => {
@@ -74,30 +60,17 @@ function readUnitPrice(tr){
   return _parseMoney(tr.querySelector('.price')?.textContent);
 }
 
-const TBODIES = {
-  main: () => document.querySelector('#table-main tbody'),
-  extra: () => document.querySelector('#table-extra tbody')
-};
 function recalcAll(){
   let total = 0;
-  const rows = [...(TBODIES.main()?.querySelectorAll('tr') || []), ...(TBODIES.extra()?.querySelectorAll('tr') || [])];
-  rows.forEach(tr => {
+  document.querySelectorAll('#table-main tbody tr, #table-extra tbody tr').forEach(tr => {
     const qty = _parseMoney(tr.querySelector('input[type="number"]')?.value);
-    const priceEl = tr.querySelector('.price-input');
-    const unitPrice = priceEl ? _parseMoney(priceEl.value) : _parseMoney(tr.dataset.price);
-    const sum = Math.max(0, qty) * Math.max(0, unitPrice);
+    const price = readUnitPrice(tr);
+    const sum = Math.max(0, qty) * Math.max(0, price);
     const cell = tr.querySelector('.sum');
     if (cell){
       cell.textContent = (sum || 0).toLocaleString('ru-RU') + ' ₽';
       cell.dataset.sum = String(sum || 0);
     }
-    total += sum || 0;
-  });
-  const grand = document.getElementById('grand-total');
-  if (grand) grand.textContent = (total || 0).toLocaleString('ru-RU');
-  applyDiscountToTotal(total);
-  saveCalcState();
-}
     total += sum || 0;
   });
   const grand = document.getElementById('grand-total');
@@ -135,21 +108,18 @@ function applyDiscountToTotal(total){
 function buildEstimate(){
   recalcAll();
   const rows = [];
-  const collect = [...(TBODIES.main()?.querySelectorAll('tr')||[]), ...(TBODIES.extra()?.querySelectorAll('tr')||[])];
-  collect.forEach(tr => {
-    const name = tr.dataset.name || '';
-    const unit = tr.dataset.unit || '';
-    const qtyEl = tr.querySelector('input[type="number"]');
-    const qty = _parseMoney(qtyEl?.value);
-    const priceEl = tr.querySelector('.price-input');
-    const unitPrice = priceEl ? _parseMoney(priceEl.value) : _parseMoney(tr.dataset.price);
-    const sum = qty * unitPrice;
-    if (qty > 0 && sum > 0){ rows.push({name, qty, unit, unitPrice, sum}); }
+  document.querySelectorAll('#table-main tbody tr, #table-extra tbody tr').forEach(tr => {
+    const name = tr.querySelector('td:nth-child(1)')?.textContent.trim() || '';
+    const qty  = _parseMoney(tr.querySelector('input[type="number"]')?.value);
+    const unit = tr.querySelector('td:nth-child(3)')?.textContent.trim() || '';
+    const unitPrice = readUnitPrice(tr);
+    const sum  = _parseMoney(tr.querySelector('.sum')?.textContent);
+    if (qty > 0 && sum > 0) rows.push({name, qty, unit, unitPrice, sum});
   });
   const wrap = document.getElementById('estimate-body');
   if (!wrap) return;
   if (!rows.length){
-    wrap.innerHTML = '<p class="kicker">Пока ничего не выбрано. Укажите количество. Смета формируется автоматически при копировании или печати.</p>';
+    wrap.innerHTML = '<p class="kicker">Пока ничего не выбрано. Укажите количество. Смета формируется автоматически при копировании или печати в PDF.</p>';
   } else {
     let total = 0;
     const items = rows.map(r => { total += r.sum; return (
@@ -161,37 +131,20 @@ function buildEstimate(){
       </tr>`);
     }).join('');
     const disc = applyDiscountToTotal(total);
-    let discRow = '';
-    let finalRow = '';
-    if (disc.pct > 0){
-      discRow = `<tr>
-        <td colspan="3" style="text-align:right;">Скидка ${disc.pct}%</td>
-        <td style="white-space:nowrap; text-align:right;">−${disc.discount.toLocaleString('ru-RU')} ₽</td>
-      </tr>`;
-      finalRow = `<tr>
-        <td colspan="3" style="text-align:right;"><b>Итого со скидкой</b></td>
-        <td style="white-space:nowrap; text-align:right;"><b>${(disc.withDisc || total).toLocaleString('ru-RU')} ₽</b></td>
-      </tr>`;
-    } else {
-      finalRow = `<tr>
-        <td colspan="3" style="text-align:right;"><b>Итого</b></td>
-        <td style="white-space:nowrap; text-align:right;"><b>${total.toLocaleString('ru-RU')} ₽</b></td>
-      </tr>`;
-    }
+    const discRow = disc.pct > 0 ? `<tr>
+      <td colspan="3" style="text-align:right;">Скидка ${disc.pct}%</td>
+      <td style="white-space:nowrap; text-align:right;">−${disc.discount.toLocaleString('ru-RU')} ₽</td>
+    </tr>` : '';
+    const finalRow = `<tr>
+      <td colspan="3" style="text-align:right;"><b>Итого со скидкой</b></td>
+      <td style="white-space:nowrap; text-align:right;"><b>${(disc.withDisc || total).toLocaleString('ru-RU')} ₽</b></td>
+    </tr>`;
     wrap.innerHTML = `
       <div class="kicker" style="margin-bottom:8px;">Автосформированный расчёт</div>
       <div style="overflow:auto;">
         <table class="calc-table">
           <thead><tr><th>Позиция</th><th>Кол-во</th><th>Цена ед.</th><th>Сумма</th></tr></thead>
           <tbody>${items}
-            ${discRow}
-            ${finalRow}
-          </tbody>
-        </table>
-      </div>`;
-  }
-  document.getElementById('estimate')?.classList.remove('hidden');
-}
             <tr><td colspan="3" style="text-align:right;"><b>Итого</b></td><td style="text-align:right;"><b>${total.toLocaleString('ru-RU')} ₽</b></td></tr>
             ${discRow}
             ${finalRow}
@@ -204,33 +157,12 @@ function buildEstimate(){
 
 function estimateToPlainText(){
   const wrap = document.getElementById('estimate-body'); if (!wrap) return '';
-  const table = wrap.querySelector('table'); if (!table) return '';
-  const rows = []; let total = 0;
+  const rows = []; const table = wrap.querySelector('table'); if (!table) return '';
   table.querySelectorAll('tbody tr').forEach(tr => {
     const tds = tr.querySelectorAll('td');
     if (tds.length === 4){
-      const name = tds[0].textContent.trim();
-      const qtyPrice = tds[1].textContent.trim();
-      const unitPrice = tds[2].textContent.trim();
-      const sum = tds[3].textContent.trim();
-      rows.push(`${name} — ${qtyPrice} × ${unitPrice} = ${sum}`);
-      const s = _parseMoney(sum);
-      if (s) total += s;
+      rows.push(`${tds[0].textContent.trim()} — ${tds[1].textContent.trim()} × ${tds[2].textContent.trim()} = ${tds[3].textContent.trim()}`);
     }
-  });
-  const address = document.getElementById('estimate-address')?.value?.trim();
-  let tail = '';
-  const discLine = document.getElementById('discount-line');
-  if (discLine && discLine.style.display !== 'none'){
-    const pct = document.getElementById('discount-pct')?.textContent || '0';
-    const da = document.getElementById('discount-amount')?.textContent || '0';
-    const gw = document.getElementById('grand-with-discount')?.textContent || String(total);
-    tail = `\nИтого: ${total.toLocaleString('ru-RU')} ₽\nСкидка ${pct}%: −${da} ₽\nИтого со скидкой: ${gw} ₽`;
-  } else {
-    tail = `\nИтого: ${total.toLocaleString('ru-RU')} ₽`;
-  }
-  return (rows.join('\n') + tail + (address ? `\nАдрес: ${address}` : '')).trim();
-}
   });
   const address = document.getElementById('estimate-address')?.value?.trim();
   const totalLine = wrap.querySelector('tbody tr:last-child td:last-child')?.textContent?.trim();
@@ -254,11 +186,11 @@ function attachEstimateUI(){
     });
   }
   if (btnPdf){
-  btnPdf.addEventListener('click', () => {
-    if (!document.querySelector('#estimate-body table')) buildEstimate();
-    window.print();
-  });
-}
+    btnPdf.addEventListener('click', () => {
+      if (!document.querySelector('#estimate-body table')) buildEstimate();
+      const wrap = document.getElementById('estimate-body');
+      const address = document.getElementById('estimate-address')?.value?.trim() || '';
+      if (!wrap || !wrap.querySelector('table')) { btnPdf.textContent='Нет данных'; setTimeout(()=>btnPdf.textContent='Скачать PDF',1200); return; }
       const inner = wrap.innerHTML.replace(/<\/script>/ig, '<\\/script>');
       const title = 'Смета' + (address ? ' — ' + address : '');
       const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title>
@@ -280,58 +212,12 @@ function attachEstimateUI(){
       w.document.open(); w.document.write(html); w.document.close();
     });
   }
-      inp.addEventListener('change', recalcAll);
+  document.querySelectorAll('input[type="number"], .price-input').forEach(inp => {
+    inp.addEventListener('input', recalcAll);
+    inp.addEventListener('change', recalcAll);
   });
 }
-function debounce(fn, d=200){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), d); }; }
-const recalcDebounced = debounce(recalcAll, 180);
-document.addEventListener('input', e => {
-  if (e.target && (e.target.matches('input[type="number"]') || e.target.classList.contains('price-input') || e.target.id === 'discount-input')){
-    recalcDebounced();
-  }
-});
-document.addEventListener('change', e => {
-  if (e.target && (e.target.matches('input[type="number"]') || e.target.classList.contains('price-input') || e.target.id === 'discount-input')){
-    recalcAll();
-  }
-});
-document.addEventListener('DOMContentLoaded', () => { attachEstimateUI(); recalcAll(); restoreCalcState(); });
-
-function saveCalcState(){
-  const state = { discount: getDiscountPct(), rows: [] };
-  const collect = [...(TBODIES.main()?.querySelectorAll('tr')||[]), ...(TBODIES.extra()?.querySelectorAll('tr')||[])];
-  collect.forEach(tr => {
-    const name = tr.dataset.name;
-    if(!name) return;
-    const qty = _parseMoney(tr.querySelector('input[type="number"]')?.value);
-    const priceEl = tr.querySelector('.price-input');
-    const unitPrice = priceEl ? _parseMoney(priceEl.value) : undefined;
-    state.rows.push({ name, qty, unitPrice });
-  });
-  try{ localStorage.setItem('calcState', JSON.stringify(state)); }catch(e){}
-}
-function restoreCalcState(){
-  let state=null;
-  try{ state = JSON.parse(localStorage.getItem('calcState')||'null'); }catch(e){}
-  if(!state) return;
-  if(typeof state.discount === 'number'){
-    const di = document.getElementById('discount-input');
-    if(di) di.value = String(state.discount);
-  }
-  const map = new Map((state.rows||[]).map(r => [r.name, r]));
-  const collect = [...(TBODIES.main()?.querySelectorAll('tr')||[]), ...(TBODIES.extra()?.querySelectorAll('tr')||[])];
-  collect.forEach(tr => {
-    const name = tr.dataset.name;
-    if(!name) return;
-    const rec = map.get(name);
-    if(!rec) return;
-    const qtyEl = tr.querySelector('input[type="number"]');
-    if(qtyEl && Number.isFinite(rec.qty)) qtyEl.value = rec.qty;
-    const priceEl = tr.querySelector('.price-input');
-    if(priceEl && Number.isFinite(rec.unitPrice)) priceEl.value = rec.unitPrice;
-  });
-  recalcAll();
-}
+document.addEventListener('DOMContentLoaded', () => { attachEstimateUI(); recalcAll(); });
 
 // ---- Scroll FAB (умная) ----
 function initScrollFab(){

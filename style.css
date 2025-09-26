@@ -64,25 +64,3 @@ body.dark .scroll-fab{ border-color: rgba(255,255,255,.2); }
 }
 
 .hidden{display:none !important;}
-
-
-.input--discount{
-  width:110px; padding:10px 12px; border-radius:12px; border:2px solid var(--input-border,#2a2b2f);
-  background: var(--input-bg,#111); color: var(--text); font-size:16px;
-}
-body:not(.dark) .input--discount{ --input-border:#000; --input-bg:#fff; }
-body.dark .input--discount{ --input-border:#fff; --input-bg:#0f0f0f; }
-
-.discount-wrap{ display:flex; gap:10px; justify-content:flex-end; align-items:center; flex-wrap:wrap; margin-top:8px; }
-.est-meta{ margin-top:12px; }
-.est-meta label{ display:block; font-size:14px; opacity:.85; margin-bottom:6px; }
-.est-meta input{ width:100%; max-width:600px; }
-.est-actions{ display:flex; gap:8px; justify-content:flex-end; margin-top:10px; flex-wrap:wrap; }
-
-/* Print-friendly view */
-@media print{
-  .topbar, .site-footer, .scroll-fab, .est-actions, .discount-wrap, #address-under-discount { display:none !important; }
-  main{ padding:0 !important; }
-  #estimate{ display:block !important; }
-  .container{ box-shadow:none !important; border:none !important; margin:0 !important; padding:0 !important; }
-}

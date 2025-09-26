@@ -13,7 +13,7 @@
 <main>
   <div class="container">
     <h1 style="margin:0 0 8px;">Калькулятор стоимости работ</h1>
-    <div class="kicker">главная страница</div>
+    <div class="kicker"></div>
 
     <div class="section-title">Основные работы</div>
     <table class="calc-table" id="table-main">
@@ -33,21 +33,21 @@
 
     <div class="total-line"><b>Итого:</b> <span id="grand-total">0</span> ₽</div>
 
-    <div class="discount-wrap">
-  <label class="kicker" for="discount-input">Персональная скидка, %</label>
-  <input id="discount-input" class="input--discount" type="number" min="0" max="100" step="1" placeholder="%"/>
-</div>
-<div id="discount-line" class="kicker" aria-live="polite" style="display:none; text-align:right; margin-top:6px;">
-  Скидка <b><span id="discount-pct">0</span>%</b>: −<b><span id="discount-amount">0</span> ₽</b>. Итого со скидкой: <b><span id="grand-with-discount">0</span> ₽</b>
-</div>
+    <div class="discount-wrap" style="display:flex;gap:10px;justify-content:flex-end;align-items:center;flex-wrap:wrap;margin-top:8px;">
+      <label class="kicker" for="discount-input" style="margin-right:6px;">Персональная скидка, %</label>
+      <input id="discount-input" type="number" min="0" max="100" step="1" placeholder="%" style="width:110px; padding:10px 12px; border-radius:12px; border:2px solid; border-color: var(--input-border,#2a2b2f); background: var(--input-bg,#111); color: #eaeaea; font-size:16px;"/>
+    </div>
+    <div id="discount-line" class="kicker" style="display:none; text-align:right; margin-top:6px;">
+      Скидка <b><span id="discount-pct">0</span>%</b>: −<b><span id="discount-amount">0</span> ₽</b>. Итого со скидкой: <b><span id="grand-with-discount">0</span> ₽</b>
+    </div>
 
-    <div class="est-actions">
-  <button class="btn-outline" id="btn-copy" type="button">Скопировать</button>
-  <button class="btn-outline" id="btn-pdf" type="button">Скачать PDF</button>
-</div>
+    <div class="est-actions" style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap;">
+      <button class="btn-outline" id="btn-copy">Скопировать</button>
+      <button class="btn-outline" id="btn-pdf">Скачать PDF</button>
+    </div>
 
-    <div id="estimate" class="container hidden estimate-wrap">
-      <h2 class="est-title">Смета</h2>
+    <div id="estimate" class="container hidden" style="margin-top:12px;">
+      <h2 style="margin:0 0 8px;">Смета</h2>
       <div id="estimate-body">Пока ничего не выбрано.</div>
       <div class="est-meta" style="margin-top:12px;">
         <label for="estimate-address" style="display:block;font-size:14px;opacity:.85;margin-bottom:6px;">Адрес:</label>
@@ -58,7 +58,7 @@
 </main>
 
 <div id="scrollFab" class="scroll-fab" role="button" aria-label="Прокрутить страницу" title="Вверх">↑</div>
-<footer>Версия: 2409_007<br/>© Суперкондиционерщик Вано 2025</footer>
+<footer>Версия: 2609_021<br/>© <a href="mailto:iglesius21@gmail.com">Суперкондиционерщик Вано</a> 2025</footer>
 
 <script src="script.js?v007"></script>
 <script>
