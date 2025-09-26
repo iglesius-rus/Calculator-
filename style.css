@@ -65,33 +65,24 @@ body.dark .scroll-fab{ border-color: rgba(255,255,255,.2); }
 
 .hidden{display:none !important;}
 
-/* === Topbar with theme toggle === */
-.topbar {position:sticky; top:0; z-index:50; display:flex; align-items:center; justify-content:space-between;
-  padding:10px 12px; background:var(--header); border-bottom:1px solid #0001; backdrop-filter:saturate(120%) blur(6px);}
-body.dark .topbar {border-color:#fff1;}
-.app-title {font-weight:700; opacity:.85;}
-.icon-btn {display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:10px;
-  border:1px solid #0002; background:transparent; color:var(--text); cursor:pointer;}
-body.dark .icon-btn {border-color:#fff2;}
-.icon-btn .icon-sun {display:inline;}
-.icon-btn .icon-moon {display:none;}
-body.dark .icon-btn .icon-sun {display:none;}
-body.dark .icon-btn .icon-moon {display:inline;}
 
-
-.vano-link{color:inherit;text-decoration:underline;opacity:.85;}
-.vano-link:hover{opacity:1;}
-
-/* Floating footer */
-.site-footer{
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
-  z-index: 45;
-  background: var(--header);
-  border-top: 1px solid var(--border);
-  padding: 8px 12px;
+.input--discount{
+  width:110px; padding:10px 12px; border-radius:12px; border:2px solid var(--input-border,#2a2b2f);
+  background: var(--input-bg,#111); color: var(--text); font-size:16px;
 }
-main{ padding-bottom: 72px; } /* space so content isn't hidden */
-/* Lift the scroll fab above footer */
-.scroll-fab{ bottom: 90px; } /* was 50px */
+body:not(.dark) .input--discount{ --input-border:#000; --input-bg:#fff; }
+body.dark .input--discount{ --input-border:#fff; --input-bg:#0f0f0f; }
 
+.discount-wrap{ display:flex; gap:10px; justify-content:flex-end; align-items:center; flex-wrap:wrap; margin-top:8px; }
+.est-meta{ margin-top:12px; }
+.est-meta label{ display:block; font-size:14px; opacity:.85; margin-bottom:6px; }
+.est-meta input{ width:100%; max-width:600px; }
+.est-actions{ display:flex; gap:8px; justify-content:flex-end; margin-top:10px; flex-wrap:wrap; }
+
+/* Print-friendly view */
+@media print{
+  .topbar, .site-footer, .scroll-fab, .est-actions, .discount-wrap, #address-under-discount { display:none !important; }
+  main{ padding:0 !important; }
+  #estimate{ display:block !important; }
+  .container{ box-shadow:none !important; border:none !important; margin:0 !important; padding:0 !important; }
+}
