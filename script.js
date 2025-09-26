@@ -131,14 +131,24 @@ function buildEstimate(){
       </tr>`);
     }).join('');
     const disc = applyDiscountToTotal(total);
-    const discRow = disc.pct > 0 ? `<tr>
-      <td colspan="3" style="text-align:right;">Скидка ${disc.pct}%</td>
-      <td style="white-space:nowrap; text-align:right;">−${disc.discount.toLocaleString('ru-RU')} ₽</td>
-    </tr>` : '';
-    const finalRow = `<tr>
-      <td colspan="3" style="text-align:right;"><b>Итого со скидкой</b></td>
-      <td style="white-space:nowrap; text-align:right;"><b>${(disc.withDisc || total).toLocaleString('ru-RU')} ₽</b></td>
-    </tr>`;
+    let discRow = '';
+    let finalRow = '';
+    if (disc.pct > 0){
+      discRow = `<tr>
+        <td colspan="3" style="text-align:right;">Скидка ${disc.pct}%</td>
+        <td style="white-space:nowrap; text-align:right;">−${disc.discount.toLocaleString('ru-RU')} ₽</td>
+      </tr>`;
+      finalRow = `<tr>
+        <td colspan="3" style="text-align:right;"><b>Итого со скидкой</b></td>
+        <td style="white-space:nowrap; text-align:right;"><b>${(disc.withDisc || total).toLocaleString('ru-RU')} ₽</b></td>
+      </tr>`;
+    } else {
+      finalRow = `<tr>
+        <td colspan="3" style="text-align:right;"><b>Итого</b></td>
+        <td style="white-space:nowrap; text-align:right;"><b>${total.toLocaleString('ru-RU')} ₽</b></td>
+      </tr>`;
+    }
+    
     wrap.innerHTML = `
       <div class="kicker" style="margin-bottom:8px;">Автосформированный расчёт</div>
       <div style="overflow:auto;">
