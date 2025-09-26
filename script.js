@@ -155,7 +155,7 @@ function buildEstimate(){
         <table class="calc-table">
           <thead><tr><th>Позиция</th><th>Кол-во</th><th>Цена ед.</th><th>Сумма</th></tr></thead>
           <tbody>${items}
-            <tr><td colspan="3" style="text-align:right;"><b>Итого</b></td><td style="text-align:right;"><b>${total.toLocaleString('ru-RU')} ₽</b></td></tr>
+            
             ${discRow}
             ${finalRow}
           </tbody>
