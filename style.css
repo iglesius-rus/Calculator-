@@ -16,6 +16,19 @@ body.dark .calc-table input[type="number"] { --input-border:#fff; --input-bg:#0f
 body:not(.dark) .calc-table input[type="number"] { --input-border:#000; --input-bg:#fff; }
 .total-line {text-align:right; font-size:20px; margin-top:12px; font-weight:700;}
 
+.scroll-fab{
+  position: fixed; left: 16px; bottom: 16px; width: 48px; height: 48px;
+  display: grid; place-items: center; font-size: 22px; line-height: 1;
+  border-radius: 9999px; cursor: pointer; user-select: none; z-index: 50;
+  background: var(--header); color: var(--text);
+  border: 1px solid; border-color: rgba(0,0,0,.2);
+  box-shadow: 0 6px 18px rgba(0,0,0,.18);
+  transition: transform .15s ease, box-shadow .2s ease, background .25s ease, color .25s ease, border-color .25s ease;
+}
+body.dark .scroll-fab{ border-color: rgba(255,255,255,.2); }
+.scroll-fab:hover{ transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0,0,0,.22); }
+.scroll-fab:active{ transform: translateY(0); }
+
 .kicker {font-size:13px; opacity:.8;}
 .section-title { margin-top: 16px; font-weight: 700; }
 
@@ -51,37 +64,3 @@ body:not(.dark) .calc-table input[type="number"] { --input-border:#000; --input-
 }
 
 .hidden{display:none !important;}
-
-
-/* === Topbar & Theme Toggle === */
-.topbar {position:sticky; top:0; z-index:50; display:flex; align-items:center; justify-content:space-between;
-  padding:10px 12px; background:var(--header); border-bottom:1px solid #0001; backdrop-filter:saturate(120%) blur(6px);}
-body.dark .topbar {border-color:#fff1;}
-.app-title {font-weight:700; opacity:.85;}
-.icon-btn {display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:10px;
-  border:1px solid #0002; background:transparent; color:var(--text); cursor:pointer;}
-body.dark .icon-btn {border-color:#fff2;}
-.icon-btn .icon-sun {display:inline;}
-.icon-btn .icon-moon {display:none;}
-body.dark .icon-btn .icon-sun {display:none;}
-body.dark .icon-btn .icon-moon {display:inline;}
-
-/* === Sticky quick actions === */
-.quickbar {position:sticky; bottom:0; z-index:40; display:flex; gap:8px; justify-content:flex-end; align-items:center;
-  padding:10px 12px; background:var(--header); border-top:1px solid #0001;}
-body.dark .quickbar {border-color:#fff1;}
-
-/* === Scroll FAB fixed at 50px === */
-.scroll-fab{
-  position: fixed; left: 16px; bottom: 50px; width: 48px; height: 48px;
-  display: grid; place-items: center; font-size: 22px; line-height: 1;
-  border-radius: 9999px; cursor: pointer; user-select: none; z-index: 50;
-  background: var(--header); color: var(--text);
-  border: 1px solid; border-color: rgba(0,0,0,.2);
-  box-shadow: 0 6px 18px rgba(0,0,0,.18);
-  transition: transform .15s ease, box-shadow .2s ease, background .25s ease, color .25s ease, border-color .25s ease;
-}
-body.dark .scroll-fab{ border-color: rgba(255,255,255,.2); }
-.scroll-fab:hover{ transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0,0,0,.22); }
-.scroll-fab:active{ transform: translateY(0); }
-
