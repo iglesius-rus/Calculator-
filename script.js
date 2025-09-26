@@ -183,7 +183,8 @@ async function doCopy(){
 }
   if (btnPdf){ btnPdf.addEventListener('click', () => { doPdf(); }); }
 async function doPdf(){
-  if (!document.querySelector('#estimate-body table')) buildEstimate();
+  const w = window.open('', '_blank'); if (!w) { try{ alert('Разрешите всплывающие окна для PDF.'); }catch(e){} return; }
+if (!document.querySelector('#estimate-body table')) buildEstimate();
   const wrap = document.getElementById('estimate-body');
   const address = document.getElementById('estimate-address')?.value?.trim() || '';
   const btnPdf = document.getElementById('btn-pdf') || document.getElementById('quick-pdf');
@@ -201,7 +202,7 @@ async function doPdf(){
     ${inner}
     <script>window.print();</script>
     </body></html>`;
-  const w = window.open('', '_blank'); if (!w) return;
+  
   w.document.open(); w.document.write(html); w.document.close();
 }
   document.querySelectorAll('input[type="number"], .price-input').forEach(inp => {
