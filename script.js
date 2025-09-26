@@ -258,3 +258,12 @@ function initScrollFab(){
 document.addEventListener('DOMContentLoaded', initScrollFab);
 
 try{ window.doCopy = doCopy; window.doPdf = doPdf; }catch(e){}
+
+// discount-input listener
+document.addEventListener('input', function(e){
+  if (e.target && e.target.id === 'discount-input'){
+    const wasOpen = !!document.querySelector('#estimate-body table');
+    recalcAll();
+    if (wasOpen) buildEstimate();
+  }
+});
