@@ -81,3 +81,17 @@ body.dark .icon-btn .icon-moon {display:inline;}
 
 .vano-link{color:inherit;text-decoration:underline;opacity:.85;}
 .vano-link:hover{opacity:1;}
+
+/* Floating footer */
+.site-footer{
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 45;
+  background: var(--header);
+  border-top: 1px solid var(--border);
+  padding: 8px 12px;
+}
+main{ padding-bottom: 72px; } /* space so content isn't hidden */
+/* Lift the scroll fab above footer */
+.scroll-fab{ bottom: 90px; } /* was 50px */
+
