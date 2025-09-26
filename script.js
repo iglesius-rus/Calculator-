@@ -56,14 +56,14 @@ function buildTable(id, rows){ const tbody = document.querySelector(id + ' tbody
 
 function readUnitPrice(tr){
   const priceInput = tr.querySelector('.price-input');
-  if (priceInput) return _parseMoney(priceInput.value);
-  return _parseMoney(tr.querySelector('.price')?.textContent);
+  if (priceInput) return safeParseMoney(priceInput.value);
+  return safeParseMoney(tr.querySelector('.price')?.textContent);
 }
 
 function recalcAll(){
   let total = 0;
   document.querySelectorAll('#table-main tbody tr, #table-extra tbody tr').forEach(tr => {
-    const qty = _parseMoney(tr.querySelector('input[type="number"]')?.value);
+    const qty = safeParseMoney(tr.querySelector('input[type="number"]')?.value);
     const price = readUnitPrice(tr);
     const sum = Math.max(0, qty) * Math.max(0, price);
     const cell = tr.querySelector('.sum');
@@ -110,10 +110,10 @@ function buildEstimate(){
   const rows = [];
   document.querySelectorAll('#table-main tbody tr, #table-extra tbody tr').forEach(tr => {
     const name = tr.querySelector('td:nth-child(1)')?.textContent.trim() || '';
-    const qty  = _parseMoney(tr.querySelector('input[type="number"]')?.value);
+    const qty  = safeParseMoney(tr.querySelector('input[type="number"]')?.value);
     const unit = tr.querySelector('td:nth-child(3)')?.textContent.trim() || '';
     const unitPrice = readUnitPrice(tr);
-    const sum  = _parseMoney(tr.querySelector('.sum')?.textContent);
+    const sum  = safeParseMoney(tr.querySelector('.sum')?.textContent);
     if (qty > 0 && sum > 0) rows.push({name, qty, unit, unitPrice, sum});
   });
   const wrap = document.getElementById('estimate-body');
@@ -186,8 +186,7 @@ function attachEstimateUI(){
     });
   }
   if (btnPdf){
-    btnPdf.addEventListener('click', () => {
-      if (!document.querySelector('#estimate-body table')) buildEstimate();
+    btnPdf.addEventListener('click', () => { pdfWithSpinner(async () => { if (!document.querySelector('#estimate-body table')) buildEstimate();
       const wrap = document.getElementById('estimate-body');
       const address = document.getElementById('estimate-address')?.value?.trim() || '';
       if (!wrap || !wrap.querySelector('table')) { btnPdf.textContent='Нет данных'; setTimeout(()=>btnPdf.textContent='Скачать PDF',1200); return; }
@@ -209,8 +208,7 @@ function attachEstimateUI(){
         <script>window.print();</script>
         </body></html>`;
       const w = window.open('', '_blank'); if (!w) return;
-      w.document.open(); w.document.write(html); w.document.close();
-    });
+      w.document.open(); w.document.write(html); w.document.close(); }); });
   }
   document.querySelectorAll('input[type="number"], .price-input').forEach(inp => {
     inp.addEventListener('input', recalcAll);
@@ -227,7 +225,7 @@ function initScrollFab(){
     const doc = document.documentElement;
     const maxScroll = Math.max(document.body.scrollHeight, doc.scrollHeight) - window.innerHeight;
     const y = window.scrollY || doc.scrollTop || 0;
-    if (maxScroll < 50) { fab.style.display = 'none'; return; } else { fab.style.display = 'grid'; }
+    if (maxScroll < 200) { fab.style.display = 'none'; return; } else { fab.style.display = 'grid'; }
     const pos = y / (maxScroll || 1);
     if (pos < 0.20) { fab.dataset.mode = 'down'; fab.textContent = '↓'; fab.title = 'Вниз'; fab.setAttribute('aria-label','Прокрутить вниз'); }
     else { fab.dataset.mode = 'up'; fab.textContent = '↑'; fab.title = 'Вверх'; fab.setAttribute('aria-label','Прокрутить вверх'); }
@@ -247,48 +245,27 @@ function initScrollFab(){
 }
 document.addEventListener('DOMContentLoaded', initScrollFab);
 
-// === Theme toggle with persistence ===
-(function(){
-  const KEY = 'theme';
-  const body = document.body;
+// Debounce utility
+function debounce(fn, wait=200){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), wait); }; }
+
+function safeParseMoney(v){
+  if (v == null) return 0;
   try {
-    const saved = localStorage.getItem(KEY);
-    if (saved === 'light') body.classList.remove('dark');
-    if (saved === 'dark') body.classList.add('dark');
-  } catch(e){ /* storage might be blocked, survive silently */ }
+    const n = _parseMoney(v);
+    return Number.isFinite(n) && n >= 0 ? n : 0;
+  } catch(e){ return 0; }
+}
 
-  function updateIconTitle(){
-    const btn = document.getElementById('themeToggle');
-    if (!btn) return;
-    const dark = body.classList.contains('dark');
-    btn.title = dark ? 'Тёмная тема' : 'Светлая тема';
-    btn.setAttribute('aria-pressed', String(dark));
+const debouncedRecalc = debounce(recalcAll, 200);
+document.addEventListener('input', function(e){
+  if (e.target && (e.target.matches('input[type="number"]') || e.target.classList.contains('price-input'))){
+    debouncedRecalc();
   }
+});
 
-  document.addEventListener('click', function(e){
-    if (e.target && (e.target.id === 'themeToggle' || e.target.closest && e.target.closest('#themeToggle'))){
-      body.classList.toggle('dark');
-      try { localStorage.setItem('theme', body.classList.contains('dark') ? 'dark' : 'light'); } catch(e){}
-      updateIconTitle();
-    }
-  });
-
-  updateIconTitle();
-})();
-
-// === Quick actions ===
-(function(){
-  const byId = id => document.getElementById(id);
-  function proxyClick(srcId, dstId){
-    const src = byId(srcId), dst = byId(dstId);
-    if (src && dst){
-      src.addEventListener('click', () => dst.click());
-    }
-  }
-  // When DOM is ready, wire quickbar buttons to main actions
-  document.addEventListener('DOMContentLoaded', function(){
-    proxyClick('quick-copy', 'btn-copy');
-    proxyClick('quick-pdf',  'btn-pdf');
-  });
-})();
-
+async function pdfWithSpinner(run){
+  const b = document.getElementById('btn-pdf');
+  if (!b){ await run(); return; }
+  const t = b.textContent; b.textContent='Формируем…'; b.disabled = true;
+  try { await run(); } finally { b.textContent = t; b.disabled = false; }
+}
