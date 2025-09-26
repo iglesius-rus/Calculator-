@@ -64,3 +64,7 @@ body.dark .scroll-fab{ border-color: rgba(255,255,255,.2); }
 }
 
 .hidden{display:none !important;}
+
+
+footer{ text-align:center; }
+footer a{ color:inherit; text-decoration:underline; }
