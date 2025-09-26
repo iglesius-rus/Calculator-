@@ -1,3 +1,26 @@
+
+// ---- Theme single source of truth ----
+function setTheme(mode){
+  const m = mode === 'dark' ? 'dark' : 'light';
+  document.body.classList.toggle('dark', m === 'dark');
+  try { localStorage.setItem('theme', m); } catch(e){}
+}
+(function(){
+  let saved = null;
+  try { saved = localStorage.getItem('theme'); } catch(e){ saved = null; }
+  if (!saved){
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    saved = prefersDark ? 'dark' : 'light';
+  }
+  setTheme(saved);
+  const btn = document.getElementById('themeToggle');
+  if (btn){
+    btn.addEventListener('click', () => {
+      const next = document.body.classList.contains('dark') ? 'light' : 'dark';
+      setTheme(next);
+    });
+  }
+})();
 // Тема
 const _themeBtn = document.getElementById('theme-toggle'); if (_themeBtn) _themeBtn.addEventListener('click', () => {
   document.body.classList.toggle('dark');
@@ -131,20 +154,35 @@ function buildEstimate(){
       </tr>`);
     }).join('');
     const disc = applyDiscountToTotal(total);
-    const discRow = disc.pct > 0 ? `<tr>
-      <td colspan="3" style="text-align:right;">Скидка ${disc.pct}%</td>
-      <td style="white-space:nowrap; text-align:right;">−${disc.discount.toLocaleString('ru-RU')} ₽</td>
-    </tr>` : '';
-    const finalRow = `<tr>
-      <td colspan="3" style="text-align:right;"><b>Итого со скидкой</b></td>
-      <td style="white-space:nowrap; text-align:right;"><b>${(disc.withDisc || total).toLocaleString('ru-RU')} ₽</b></td>
-    </tr>`;
+    let tail = '';
+    if (disc.pct > 0){
+      tail = `<tr>
+        <td colspan="3" style="text-align:right;">Скидка ${disc.pct}%</td>
+        <td style="white-space:nowrap; text-align:right;">−${disc.discount.toLocaleString('ru-RU')} ₽</td>
+      </tr>
+      <tr>
+        <td colspan="3" style="text-align:right;"><b>Итого со скидкой</b></td>
+        <td style="white-space:nowrap; text-align:right;"><b>${disc.withDisc.toLocaleString('ru-RU')} ₽</b></td>
+      </tr>`;
+    } else {
+      tail = `<tr>
+        <td colspan="3" style="text-align:right;"><b>Итого</b></td>
+        <td style="white-space:nowrap; text-align:right;"><b>${total.toLocaleString('ru-RU')} ₽</b></td>
+      </tr>`;
+    }
     wrap.innerHTML = `
       <div class="kicker" style="margin-bottom:8px;">Автосформированный расчёт</div>
       <div style="overflow:auto;">
         <table class="calc-table">
           <thead><tr><th>Позиция</th><th>Кол-во</th><th>Цена ед.</th><th>Сумма</th></tr></thead>
           <tbody>${items}
+            ${tail}
+          </tbody>
+        </table>
+      </div>`;
+  }
+  document.getElementById('estimate')?.classList.remove('hidden');
+}
             <tr><td colspan="3" style="text-align:right;"><b>Итого</b></td><td style="text-align:right;"><b>${total.toLocaleString('ru-RU')} ₽</b></td></tr>
             ${discRow}
             ${finalRow}
@@ -157,12 +195,33 @@ function buildEstimate(){
 
 function estimateToPlainText(){
   const wrap = document.getElementById('estimate-body'); if (!wrap) return '';
-  const rows = []; const table = wrap.querySelector('table'); if (!table) return '';
+  const table = wrap.querySelector('table'); if (!table) return '';
+  const rows = []; let total = 0;
   table.querySelectorAll('tbody tr').forEach(tr => {
     const tds = tr.querySelectorAll('td');
     if (tds.length === 4){
-      rows.push(`${tds[0].textContent.trim()} — ${tds[1].textContent.trim()} × ${tds[2].textContent.trim()} = ${tds[3].textContent.trim()}`);
+      const name = tds[0].textContent.trim();
+      const isDiscount = /Скидка/.test(name);
+      const isTotal = /Итого/.test(name);
+      if (!isDiscount){ // позиции
+        const qtyPrice = tds[1].textContent.trim();
+        const unitPrice = tds[2].textContent.trim();
+        const sum = tds[3].textContent.trim();
+        rows.push(`${name} — ${qtyPrice} × ${unitPrice} = ${sum}`);
+        const s = _parseMoney(sum);
+        if (s) total += s;
+      }
     }
+  });
+  const address = document.getElementById('estimate-address')?.value?.trim();
+  const finalCell = table.querySelector('tbody tr:last-child td:last-child');
+  const finalText = finalCell ? finalCell.textContent.trim() : '';
+  const tail = finalText ? `
+Итого: ${finalText}` : '';
+  return (rows.join('
+') + tail + (address ? `
+Адрес: ${address}` : '')).trim();
+}
   });
   const address = document.getElementById('estimate-address')?.value?.trim();
   const totalLine = wrap.querySelector('tbody tr:last-child td:last-child')?.textContent?.trim();

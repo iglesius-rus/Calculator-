@@ -68,3 +68,10 @@ body.dark .scroll-fab{ border-color: rgba(255,255,255,.2); }
 
 footer{ text-align:center; }
 footer a{ color:inherit; text-decoration:underline; }
+
+
+.topbar{ position:sticky; top:0; z-index:10; display:flex; justify-content:space-between; align-items:center; padding:10px 14px; backdrop-filter: blur(6px); }
+.icon-btn{ display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:10px; border:1px solid var(--border,#444); background:transparent; cursor:pointer; }
+.icon-sun{ display:none; }
+body:not(.dark) .icon-sun{ display:block; }
+body:not(.dark) .icon-moon{ display:none; }
