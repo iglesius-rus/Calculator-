@@ -4,9 +4,410 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Калькулятор стоимости работ — v2</title>
-  <!-- CSS и JS встроены прямо здесь для простоты -->
+  <style>
+    /* ========== БАЗА ========== */
+    :root{
+      --bg:#f7f7f8; --card:#ffffff; --text:#161616; --muted:#6b7280; --line:#e5e7eb;
+      --brand:#2563eb; --brand-ink:#fff; --shadow:0 8px 24px rgba(2,6,23,.06);
+      --radius:14px;
+    }
+    .dark:root{ --bg:#0f1113; --card:#121418; --text:#f0f2f5; --muted:#9aa3af; --line:#2a2f37; --shadow:0 8px 24px rgba(0,0,0,.35); --brand:#3b82f6; --brand-ink:#0b1220; }
+    *,*::before,*::after{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:var(--bg); color:var(--text); line-height:1.5; }
+
+    /* ========== UI: topbar ========== */
+    .topbar{ position:sticky; top:0; z-index:20; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 12px; background:color-mix(in oklab, var(--card) 88%, transparent); border-bottom:1px solid var(--line); backdrop-filter:saturate(120%) blur(6px); }
+    .title{ font-weight:700; letter-spacing:.2px; }
+    .icon-btn{ display:inline-grid; place-items:center; width:38px; height:38px; border-radius:10px; color:inherit; background:transparent; border:1px solid var(--line); cursor:pointer; }
+
+    /* ========== CARD ========== */
+    .container{ max-width:980px; margin:14px auto 80px; padding:16px; background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); }
+    .section-title{ margin:10px 0 6px; font-weight:700; }
+    .kicker{ font-size:13px; color:var(--muted); }
+
+    /* ========== TABLE ========== */
+    .calc-table{ width:100%; border-collapse:collapse; margin-top:8px; }
+    .calc-table th,.calc-table td{ border-bottom:1px solid var(--line); padding:10px; vertical-align:middle; }
+    .calc-table th{ text-align:left; font-weight:700; }
+    .calc-table input[type="number"], .calc-table input[type="text"]{
+      width: 84px; text-align:center; padding:10px 12px; border-radius:12px; border:1.5px solid var(--line);
+      background:color-mix(in oklab, var(--card) 96%, transparent); color:inherit; font-size:16px;
+    }
+    .calc-table .price-input{ width: 104px; }
+    .sum{ white-space:nowrap; text-align:right; font-variant-numeric:tabular-nums; }
+
+    /* ========== TOTALS ========== */
+    .totals{ display:flex; flex-wrap:wrap; align-items:center; gap:12px; justify-content:flex-end; margin-top:10px; }
+    .grand{ font-weight:800; font-size:20px; }
+
+    /* ========== ACTIONS ========== */
+    .actions{ display:flex; gap:8px; justify-content:flex-end; margin-top:12px; flex-wrap:wrap; }
+    .btn{ appearance:none; border:1.5px solid var(--line); background:var(--card); color:inherit; padding:12px 16px; border-radius:12px; cursor:pointer; box-shadow:var(--shadow); }
+    .btn:active{ transform:translateY(1px); }
+    .btn.primary{ background:var(--brand); border-color:transparent; color:var(--brand-ink); }
+
+    /* ========== ESTIMATE CARD ========== */
+    #estimate{ margin-top:12px; }
+    .hidden{ display:none !important; }
+
+    /* ========== FLOATERS ========== */
+    .scroll-fab{ position:fixed; left:16px; bottom:90px; width:48px; height:48px; display:grid; place-items:center; font-size:22px; border-radius:999px; background:var(--card); color:inherit; border:1px solid var(--line); box-shadow:var(--shadow); cursor:pointer; }
+    footer.site-footer{ position:fixed; left:0; right:0; bottom:0; background:var(--card); border-top:1px solid var(--line); padding:8px 12px; font-size:12px; color:var(--muted); }
+    main{ padding-bottom:72px; }
+
+    /* ========== ADAPTIVE ========== */
+    @media (max-width: 720px){
+      .container{ margin:10px 8px 90px; padding:14px; }
+      .calc-table thead{ display:none; }
+      .calc-table, .calc-table tbody, .calc-table tr, .calc-table td{ display:block; width:100%; }
+      .calc-table tbody tr{ border:1px solid var(--line); border-radius:12px; padding:8px 10px; margin-bottom:10px; }
+      .calc-table td{ border:none; display:flex; justify-content:space-between; align-items:center; padding:8px 0; }
+      .calc-table td::before{ content: attr(data-label); font-size:13px; color:var(--muted); margin-right:12px; flex:1 1 auto; text-align:left; }
+      .calc-table input[type="number"], .calc-table input[type="text"]{ width:70px; }
+      .sum{ text-align:right; }
+    }
+  </style>
 </head>
 <body>
-  <p>Смотри файл из Canvas (Калькулятор 2.0 — single-file.html).</p>
+<main>
+  <header class="topbar" role="banner">
+    <div class="title">Калькулятор</div>
+    <button id="themeToggle" class="icon-btn" aria-label="Переключить тему" title="Тема" aria-pressed="false">
+      <span aria-hidden="true">🌓</span>
+    </button>
+  </header>
+
+  <div class="container" role="region" aria-labelledby="h-main">
+    <h2 id="h-main" class="section-title">Основные работы</h2>
+    <table class="calc-table" id="table-main">
+      <thead>
+        <tr><th>Наименование работ</th><th>Кол-во</th><th>Ед. изм.</th><th>Цена ед.</th><th>Сумма</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <h2 class="section-title">Дополнительные работы</h2>
+    <table class="calc-table" id="table-extra">
+      <thead>
+        <tr><th>Наименование работ</th><th>Кол-во</th><th>Ед. изм.</th><th>Цена ед.</th><th>Сумма</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div class="totals" aria-live="polite">
+      <label class="kicker" for="discount-input">Персональная скидка, %</label>
+      <input id="discount-input" type="number" min="0" max="100" step="1" inputmode="decimal" placeholder="%" aria-describedby="disc-help" />
+      <div id="disc-help" class="kicker">0–100</div>
+      <div class="grand">Итого: <span id="grand-total">0</span> ₽</div>
+    </div>
+
+    <div id="discount-line" class="kicker hidden" style="text-align:right;">
+      Скидка <b><span id="discount-pct">0</span>%</b>: −<b><span id="discount-amount">0</span> ₽</b>. Итого со скидкой: <b><span id="grand-with-discount">0</span> ₽</b>
+    </div>
+
+    <div class="est-meta" style="margin-top:12px;">
+      <label for="estimate-address" style="display:block;font-size:14px;margin-bottom:6px;color:var(--muted);">Адрес:</label>
+      <input id="estimate-address" type="text" placeholder="Укажите адрес объекта" style="width:100%;max-width:600px;" />
+    </div>
+
+    <div class="actions">
+      <button class="btn" id="btn-copy">Скопировать</button>
+      <button class="btn primary" id="btn-pdf">Скачать PDF</button>
+    </div>
+
+    <section id="estimate" class="hidden" aria-labelledby="h-est">
+      <h2 id="h-est" class="section-title" style="margin:12px 0 8px">Смета</h2>
+      <div id="estimate-body" class="kicker">Пока ничего не выбрано.</div>
+    </section>
+  </div>
+</main>
+
+<div id="scrollFab" class="scroll-fab" role="button" aria-label="Прокрутить страницу" title="Вверх">↑</div>
+<footer class="site-footer">v2 • © Ваши умные кондиционеры</footer>
+
+<script>
+  // ========= УТИЛИТЫ =========
+  const fmt = new Intl.NumberFormat('ru-RU');
+  const formatMoney = n => fmt.format(n || 0);
+  const num = v => {
+    if (typeof v === 'number') return v;
+    if (v == null) return 0;
+    return parseFloat(String(v).replace(/\s|\u00A0/g,'').replace(/руб\.?|₽/ig,'').replace(',', '.')) || 0;
+  };
+
+  // ========= ДАННЫЕ =========
+  const MAIN = [
+    { name:'Монтаж настенного кондиционера 07–09 BTU', unit:'компл.', price:12000 },
+    { name:'Монтаж настенного кондиционера 12 BTU', unit:'компл.', price:14000 },
+    { name:'Монтаж настенного кондиционера 18 BTU', unit:'компл.', price:16000 }
+  ];
+
+  const EXTRA = [
+    { name:'Автовышка (от 3 часов)', unit:'ч.', price:2000 },
+    { name:'Демонтаж внутреннего/наружного блока (за каждый)', unit:'блок', price:2000 },
+    { name:'Демонтаж кондиционера 07–12', unit:'шт.', price:3000 },
+    { name:'Демонтаж кондиционера 18–24', unit:'шт.', price:4000 },
+    { name:'Демонтаж/монтаж стеклопакета', unit:'шт.', price:1000 },
+    { name:'Дозаправка кондиционера фреоном', unit:'г.', price:7, step:100 },
+    { name:'Кабель гибкий ПВС 3×1,5 мм², ГОСТ (с монтажом штепсельной вилки)', unit:'м.', price:250 },
+    { name:'Кабель-канал под провод', unit:'м.', price:500 },
+    { name:'Каждый дополнительный выезд', unit:'выезд', price:1000 },
+    { name:'Короб ДКС', unit:'п.м.', price:1200 },
+    { name:'Монтаж дополнительного дренажа без короба', unit:'п.м.', price:150 },
+    { name:'Монтаж корзины', unit:'шт.', price:0, editablePrice:true },
+    { name:'Монтаж наружного блока на вентилируемый фасад', unit:'услуга', price:3500 },
+    { name:'Пайка фреоновых труб (за каждую)', unit:'пайка', price:500 },
+    { name:'Потолок «Армстронг» (разборка/сборка)', unit:'шт.', price:200 },
+    { name:'Пробивка доп. отверстия (бетон, Ø 52 мм)', unit:'отв.', price:2000 },
+    { name:'Пробивка доп. отверстия (ГКЛ и т.п., Ø до 52 мм)', unit:'отв.', price:500 },
+    { name:'Пробивка доп. отверстия (кирпич, Ø 52 мм)', unit:'отв.', price:1000 },
+    { name:'Установка антивандальной решётки', unit:'шт.', price:3000 },
+    { name:'Установка зимнего комплекта', unit:'шт.', price:3000 },
+    { name:'Установка помпы', unit:'шт.', price:2000 },
+    { name:'Чистка кондиционера (внутренний и наружный блок)', unit:'компл.', price:3000 },
+    { name:'Чистка кондиционера — полный комплекс', unit:'компл.', price:4000 },
+    { name:'Штроба в бетоне', unit:'п.м.', price:2500 },
+    { name:'Штроба в кирпиче', unit:'п.м.', price:1500 },
+    { name:'Штроба под дренаж в бетоне', unit:'п.м.', price:800 },
+    { name:'Штроба под дренаж в кирпиче', unit:'п.м.', price:600 },
+    { name:'Элементы короба ДКС', unit:'шт.', price:350 }
+  ].sort((a,b)=>a.name.localeCompare(b.name,'ru'));
+
+  // Для монтажей: доп. трасса по BTU
+  const EXTRA_MAP = {
+    '07-09': { name:'Дополнительная трасса (за 1 м) 07–09 (BTU)', unit:'п.м.', price:1500 },
+    '12':    { name:'Дополнительная трасса (за 1 м) 12 (BTU)',     unit:'п.м.', price:1700 },
+    '18':    { name:'Дополнительная трасса (за 1 м) 18 (BTU)',     unit:'п.м.', price:1700 }
+  };
+
+  // ========= РЕНДЕР =========
+  const $ = s => document.querySelector(s);
+  const $$ = s => document.querySelectorAll(s);
+
+  const rowHTML = r => {
+    const priceCell = r.editablePrice
+      ? `<input type="number" class="price-input" min="0" step="1" value="${num(r.price)}" aria-label="Цена, редактируемая"> ₽`
+      : `${formatMoney(num(r.price))} ₽`;
+    const step = r.step ? ` step="${r.step}"` : ' step="1"';
+    return `<tr>
+      <td data-label="Наименование работ">${r.name}</td>
+      <td data-label="Кол-во"><input type="number" inputmode="numeric" pattern="[0-9]*" min="0"${step} value=""></td>
+      <td data-label="Ед. изм.">${r.unit}</td>
+      <td class="price" data-label="Цена ед.">${priceCell}</td>
+      <td class="sum" data-sum="0" data-label="Сумма">0 ₽</td>
+    </tr>`;
+  };
+
+  function buildMainWithExtras(){
+    const rows = [];
+    for (const m of MAIN){
+      rows.push(m);
+      if (/BTU/i.test(m.name)){
+        const key = m.name.includes('07') ? '07-09' : (m.name.includes('12') ? '12' : '18');
+        rows.push(EXTRA_MAP[key]);
+      }
+    }
+    $('#table-main tbody').innerHTML = rows.map(rowHTML).join('');
+  }
+
+  function buildTable(id, data){ $(id + ' tbody').innerHTML = data.map(rowHTML).join(''); }
+
+  function readUnitPrice(tr){
+    const pi = tr.querySelector('.price-input');
+    return pi ? num(pi.value) : num(tr.querySelector('.price')?.textContent);
+  }
+
+  function recalcAll(){
+    let total = 0;
+    $$('#table-main tbody tr, #table-extra tbody tr').forEach(tr => {
+      const qty = num(tr.querySelector('input[type="number"]')?.value);
+      const price = readUnitPrice(tr);
+      const sum = Math.max(0, qty) * Math.max(0, price);
+      const cell = tr.querySelector('.sum');
+      cell.textContent = formatMoney(sum) + ' ₽';
+      cell.dataset.sum = String(sum || 0);
+      total += sum || 0;
+    });
+    $('#grand-total').textContent = formatMoney(total);
+    applyDiscount(total);
+  }
+
+  function discountPct(){ return Math.min(100, Math.max(0, num($('#discount-input')?.value))); }
+
+  function applyDiscount(total){
+    const pct = discountPct();
+    const discount = Math.round(total * pct) / 100;
+    const withDisc = Math.max(0, total - discount);
+    const line = $('#discount-line');
+    if (pct > 0){
+      line.classList.remove('hidden');
+      $('#discount-pct').textContent = fmt.format(pct);
+      $('#discount-amount').textContent = formatMoney(discount);
+      $('#grand-with-discount').textContent = formatMoney(withDisc);
+    } else line.classList.add('hidden');
+    return { pct, discount, withDisc };
+  }
+
+  function buildEstimate(){
+    recalcAll();
+    const rows = [];
+    $$('#table-main tbody tr, #table-extra tbody tr').forEach(tr => {
+      const name = tr.querySelector('td:nth-child(1)')?.textContent.trim();
+      const qty  = num(tr.querySelector('input[type="number"]').value);
+      const unit = tr.querySelector('td:nth-child(3)')?.textContent.trim();
+      const price = readUnitPrice(tr);
+      const sum = num(tr.querySelector('.sum')?.textContent);
+      if (qty > 0 && sum > 0) rows.push({name, qty, unit, price, sum});
+    });
+
+    const wrap = $('#estimate-body');
+    if (!rows.length){
+      wrap.innerHTML = '<p class="kicker">Пока ничего не выбрано. Укажите количество.</p>';
+      $('#estimate').classList.remove('hidden');
+      return;
+    }
+
+    let total = 0;
+    const items = rows.map(r => { total += r.sum; return `
+      <tr>
+        <td>${r.name}</td>
+        <td style="text-align:center; white-space:nowrap;">${r.qty} ${r.unit}</td>
+        <td style="white-space:nowrap;">${formatMoney(r.price)} ₽</td>
+        <td class="sum" style="white-space:nowrap; text-align:right;"><b>${formatMoney(r.sum)} ₽</b></td>
+      </tr>`; }).join('');
+
+    const disc = applyDiscount(total);
+    const discRow = disc.pct > 0 ? `
+      <tr>
+        <td colspan="3" style="text-align:right;">Скидка ${disc.pct}%</td>
+        <td style="white-space:nowrap; text-align:right;">−${formatMoney(disc.discount)} ₽</td>
+      </tr>` : '';
+
+    const finalRow = `
+      <tr>
+        <td colspan="3" style="text-align:right;"><b>${disc.pct > 0 ? 'Итого со скидкой' : 'Итого'}</b></td>
+        <td style="white-space:nowrap; text-align:right;"><b>${formatMoney(disc.pct > 0 ? disc.withDisc : total)} ₽</b></td>
+      </tr>`;
+
+    wrap.innerHTML = `
+      <div class="kicker" style="margin-bottom:8px;">Автосформированный расчёт</div>
+      <div style="overflow:auto;">
+        <table class="calc-table">
+          <thead><tr><th>Позиция</th><th>Кол-во</th><th>Цена ед.</th><th>Сумма</th></tr></thead>
+          <tbody>${items}${discRow}${finalRow}</tbody>
+        </table>
+      </div>`;
+
+    $('#estimate').classList.remove('hidden');
+  }
+
+  function estimateToText(){
+    const wrap = $('#estimate-body'); if (!wrap) return '';
+    const table = wrap.querySelector('table'); if (!table) return '';
+    const rows = [];
+    table.querySelectorAll('tbody tr').forEach(tr => {
+      const tds = tr.querySelectorAll('td');
+      if (tds.length === 4){ rows.push(`${tds[0].textContent.trim()} — ${tds[1].textContent.trim()} × ${tds[2].textContent.trim()} = ${tds[3].textContent.trim()}`); }
+    });
+    const address = $('#estimate-address')?.value?.trim();
+    const totalLine = table.querySelector('tbody tr:last-child td:last-child')?.textContent?.trim();
+    return (rows.join('\n') + (totalLine ? `\nИтого: ${totalLine}` : '') + (address ? `\nАдрес: ${address}` : '')).trim();
+  }
+
+  function copyEstimate(){
+    if (!$('#estimate-body table')) buildEstimate();
+    const text = estimateToText();
+    if (!text){ flashBtn('#btn-copy','Нет данных'); return; }
+    navigator.clipboard?.writeText(text).then(() => flashBtn('#btn-copy','Скопировано ✅'))
+      .catch(() => {
+        const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); flashBtn('#btn-copy','Скопировано ✅');
+      });
+  }
+
+  function pdfEstimate(){
+    if (!$('#estimate-body table')) buildEstimate();
+    const wrap = $('#estimate-body'); if (!wrap || !wrap.querySelector('table')) { flashBtn('#btn-pdf','Нет данных'); return; }
+    const address = $('#estimate-address')?.value?.trim() || '';
+    const title = 'Смета' + (address ? ' — ' + address : '');
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title>
+      <style>
+        body{ font-family:Arial, sans-serif; margin:24px; }
+        h1{ margin:0 0 10px; font-size:20px; }
+        .meta{ font-size:12px; color:#6b7280; margin-bottom:6px; }
+        table{ width:100%; border-collapse:collapse; margin-top:6px; }
+        th,td{ border-bottom:1px solid #ddd; padding:8px; text-align:left; }
+        th{ background:#f5f5f5; }
+      </style></head><body>
+      <h1>${title}</h1>
+      <div class="meta">Дата: ${new Date().toLocaleString('ru-RU')}</div>
+      ${address ? `<div class="meta"><b>Адрес:</b> ${address}</div>` : ''}
+      ${wrap.innerHTML}
+      <script>window.print();<\/script>
+    </body></html>`;
+    const w = window.open('', '_blank'); if (!w) return; w.document.open(); w.document.write(html); w.document.close();
+  }
+
+  function flashBtn(sel, text){
+    const el = $(sel); if (!el) return;
+    const prev = el.textContent; el.textContent = text; setTimeout(()=>el.textContent = prev, 1400);
+  }
+
+  // ========= ТЕМА =========
+  function setTheme(mode){
+    if (mode === 'dark') document.documentElement.classList.add('dark');
+    else document.documentElement.classList.remove('dark');
+    try{ localStorage.setItem('theme', mode); }catch(e){}
+    const btn = $('#themeToggle'); if (btn){ const dark = document.documentElement.classList.contains('dark'); btn.setAttribute('aria-pressed', String(dark)); btn.title = dark ? 'Тёмная тема' : 'Светлая тема'; }
+  }
+  (function initTheme(){
+    let saved=null; try{ saved = localStorage.getItem('theme'); }catch(e){}
+    if(saved==='dark') setTheme('dark'); else setTheme('light');
+    $('#themeToggle').addEventListener('click', () => setTheme(document.documentElement.classList.contains('dark') ? 'light' : 'dark'));
+  })();
+
+  // ========= SCROLL FAB =========
+  (function initScrollFab(){
+    const fab = $('#scrollFab'); if (!fab) return;
+    const update = () => {
+      const doc = document.documentElement;
+      const maxScroll = Math.max(document.body.scrollHeight, doc.scrollHeight) - innerHeight;
+      const y = scrollY || doc.scrollTop || 0;
+      if (maxScroll < 200) { fab.style.display = 'none'; return; } else { fab.style.display = 'grid'; }
+      const pos = y / (maxScroll || 1);
+      if (pos < 0.20) { fab.dataset.mode = 'down'; fab.textContent = '↓'; fab.title = 'Вниз'; fab.setAttribute('aria-label','Прокрутить вниз'); }
+      else { fab.dataset.mode = 'up'; fab.textContent = '↑'; fab.title = 'Вверх'; fab.setAttribute('aria-label','Прокрутить вверх'); }
+    };
+    update();
+    addEventListener('scroll', update, {passive:true});
+    addEventListener('resize', update);
+    fab.addEventListener('click', () => {
+      if (fab.dataset.mode === 'up') scrollTo({ top:0, behavior:'smooth' });
+      else scrollTo({ top: document.documentElement.scrollHeight, behavior:'smooth' });
+    });
+  })();
+
+  // ========= ИНИЦИАЛИЗАЦИЯ =========
+  function attachUI(){
+    // Рендер таблиц
+    buildMainWithExtras();
+    buildTable('#table-extra', EXTRA);
+
+    // Делегирование событий для пересчёта
+    document.body.addEventListener('input', e => {
+      if (e.target.matches('input[type="number"], .price-input')) recalcAll();
+      if (e.target.id === 'discount-input'){ const wasOpen = !!$('#estimate-body table'); recalcAll(); if (wasOpen) buildEstimate(); }
+    });
+
+    // Кнопки
+    $('#btn-copy').addEventListener('click', copyEstimate);
+    $('#btn-pdf').addEventListener('click', pdfEstimate);
+
+    // Первичный подсчёт
+    recalcAll();
+  }
+
+  document.addEventListener('DOMContentLoaded', attachUI);
+</script>
 </body>
 </html>
