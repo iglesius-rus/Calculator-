@@ -5,11 +5,7 @@ const _themeBtn = document.getElementById('theme-toggle'); if (_themeBtn) _theme
 });
 try { const savedTheme = localStorage.getItem('theme'); if (savedTheme === 'light') document.body.classList.remove('dark'); } catch(e){}
 
-/* Аккордеон */
-function setMaxHeight(el, open) { if (open) el.style.maxHeight = el.scrollHeight + 'px'; else el.style.maxHeight = '0px'; }
-function scrollToPanel(panel){ panel.scrollIntoView({ behavior:'smooth', block:'start' }); }
-function saveState(){ try { const openIds = Array.from(document.querySelectorAll('.content-section.open')).map(p => p.id); localStorage.setItem('openPanels', JSON.stringify(openIds)); } catch(e){} }
-function restoreState(){ try { const openIds = JSON.parse(localStorage.getItem('openPanels') || '[]'); openIds.forEach(id => { const panel = document.getElementById(id); const btn = panel?.previousElementSibling; if (panel && btn) { panel.classList.add('open'); setMaxHeight(panel, true); btn.classList.add('active'); btn.setAttribute('aria-expanded', 'true'); } }); } catch(e){} }
+
 
 // ===== Калькулятор стоимости =====
 function format(n) { return n.toLocaleString('ru-RU'); }
@@ -223,7 +219,7 @@ function initScrollFab(){
     const doc = document.documentElement;
     const maxScroll = Math.max(document.body.scrollHeight, doc.scrollHeight) - window.innerHeight;
     const y = window.scrollY || doc.scrollTop || 0;
-    if (maxScroll < 200) { fab.style.display = 'none'; return; } else { fab.style.display = 'grid'; }
+    if (maxScroll < 10) { fab.style.display = 'none'; return; } else { fab.style.display = 'grid'; }
     const pos = y / (maxScroll || 1);
     if (pos < 0.20) { fab.dataset.mode = 'down'; fab.textContent = '↓'; fab.title = 'Вниз'; fab.setAttribute('aria-label','Прокрутить вниз'); }
     else { fab.dataset.mode = 'up'; fab.textContent = '↑'; fab.title = 'Вверх'; fab.setAttribute('aria-label','Прокрутить вверх'); }
@@ -248,3 +244,12 @@ document.addEventListener('DOMContentLoaded', function(){
   const qc = document.getElementById('quick-copy'); if (qc) qc.addEventListener('click', ()=>doCopy());
   const qp = document.getElementById('quick-pdf');  if (qp) qp.addEventListener('click', ()=>doPdf());
 });
+
+// Theme toggle with persistence
+(function(){
+  const KEY='theme'; const body=document.body;
+  try{ const saved=localStorage.getItem(KEY); if(saved==='light') body.classList.remove('dark'); if(saved==='dark') body.classList.add('dark'); }catch(e){}
+  function update(){ const btn=document.getElementById('themeToggle'); if(!btn) return; const dark=body.classList.contains('dark'); btn.title=dark?'Тёмная тема':'Светлая тема'; btn.setAttribute('aria-pressed', String(dark)); }
+  document.addEventListener('click', e=>{ if(e.target.closest && e.target.closest('#themeToggle')){ body.classList.toggle('dark'); try{localStorage.setItem('theme', body.classList.contains('dark')?'dark':'light');}catch(e){} update(); } });
+  update();
+})();
