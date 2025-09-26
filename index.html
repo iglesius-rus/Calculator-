@@ -4,18 +4,29 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Калькулятор стоимости работ — Nord Чеб</title>
-<link rel="stylesheet" href="style.css?v001"/>
+<link rel="stylesheet" href="style.css?v002"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
 </head>
 <body class="dark">
 <main>
+  <header class="topbar">
+    <div class="topbar-left"><span class="app-title">Калькулятор</span></div>
+    <div class="topbar-right">
+      <button id="themeToggle" class="icon-btn" aria-label="Переключить тему" title="Тема">
+        <svg class="icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+          <path d="M12 4V2m0 20v-2M4 12H2m20 0h-2M5.64 5.64L4.22 4.22m15.56 15.56-1.42-1.42M5.64 18.36 4.22 19.78m15.56-15.56-1.42 1.42" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2" fill="none"/>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" fill="currentColor"/>
+        </svg>
+      </button>
+    </div>
+  </header>
   <div class="container">
-    <h1 style="margin:0 0 8px;">Калькулятор стоимости работ</h1>
-    <div class="kicker">главная страница</div>
-
-    <div class="section-title">Основные работы</div>
+<div class="section-title">Основные работы</div>
     <table class="calc-table" id="table-main">
       <thead>
         <tr><th>Наименование работ</th><th>Кол-во</th><th>Ед. изм.</th><th>Цена ед.</th><th>Цена</th></tr>
@@ -35,17 +46,15 @@
 
     <div class="discount-wrap" style="display:flex;gap:10px;justify-content:flex-end;align-items:center;flex-wrap:wrap;margin-top:8px;">
       <label class="kicker" for="discount-input" style="margin-right:6px;">Персональная скидка, %</label>
-      <input id="discount-input" type="number" min="0" max="100" step="1" placeholder="%" style="width:110px; padding:10px 12px; border-radius:12px; border:2px solid; border-color: var(--input-border,#2a2b2f); background: var(--input-bg,#111); color: #eaeaea; font-size:16px;"/ aria-label="Процент персональной скидки" aria-describedby="discount-help">
-    
-    <span id="discount-help" class="sr-only">Введите процент скидки от 0 до 100</span>
+      <input id="discount-input" type="number" min="0" max="100" step="1" placeholder="%" style="width:110px; padding:10px 12px; border-radius:12px; border:2px solid; border-color: var(--input-border,#2a2b2f); background: var(--input-bg,#111); color: #eaeaea; font-size:16px;"/>
     </div>
     <div id="discount-line" class="kicker" style="display:none; text-align:right; margin-top:6px;">
       Скидка <b><span id="discount-pct">0</span>%</b>: −<b><span id="discount-amount">0</span> ₽</b>. Итого со скидкой: <b><span id="grand-with-discount">0</span> ₽</b>
     </div>
 
     <div class="est-actions" style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap;">
-      <button class="btn-outline" id="btn-copy" aria-label="Скопировать смету">Скопировать</button>
-      <button class="btn-outline" id="btn-pdf" aria-label="Скачать PDF">Скачать PDF</button>
+      <button class="btn-outline" id="btn-copy">Скопировать</button>
+      <button class="btn-outline" id="btn-pdf">Скачать PDF</button>
     </div>
 
     <div id="estimate" class="container hidden" style="margin-top:12px;">
@@ -58,11 +67,16 @@
     </div>
   </div>
 </main>
+<div id="quickbar" class="quickbar">
+  <button id="quick-copy" class="btn-outline" title="Скопировать смету" aria-label="Скопировать смету">Скопировать</button>
+  <button id="quick-pdf"  class="btn-outline" title="Скачать PDF" aria-label="Скачать PDF">PDF</button>
+</div>
+
 
 <div id="scrollFab" class="scroll-fab" role="button" aria-label="Прокрутить страницу" title="Вверх">↑</div>
-<footer>Версия: 0926_001<br/>© Суперкондиционерщик Вано 2025</footer>
+<footer>Версия: 2609_002<br/>© Суперкондиционерщик Вано 2025</footer>
 
-<script src="script.js?v001"></script>
+<script src="script.js?v002"></script>
 <script>
   // Данные — MAIN и EXTRA
   const MAIN = [

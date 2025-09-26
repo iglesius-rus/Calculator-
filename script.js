@@ -56,14 +56,14 @@ function buildTable(id, rows){ const tbody = document.querySelector(id + ' tbody
 
 function readUnitPrice(tr){
   const priceInput = tr.querySelector('.price-input');
-  if (priceInput) return safeParseMoney(priceInput.value);
-  return safeParseMoney(tr.querySelector('.price')?.textContent);
+  if (priceInput) return _parseMoney(priceInput.value);
+  return _parseMoney(tr.querySelector('.price')?.textContent);
 }
 
 function recalcAll(){
   let total = 0;
   document.querySelectorAll('#table-main tbody tr, #table-extra tbody tr').forEach(tr => {
-    const qty = safeParseMoney(tr.querySelector('input[type="number"]')?.value);
+    const qty = _parseMoney(tr.querySelector('input[type="number"]')?.value);
     const price = readUnitPrice(tr);
     const sum = Math.max(0, qty) * Math.max(0, price);
     const cell = tr.querySelector('.sum');
@@ -110,10 +110,10 @@ function buildEstimate(){
   const rows = [];
   document.querySelectorAll('#table-main tbody tr, #table-extra tbody tr').forEach(tr => {
     const name = tr.querySelector('td:nth-child(1)')?.textContent.trim() || '';
-    const qty  = safeParseMoney(tr.querySelector('input[type="number"]')?.value);
+    const qty  = _parseMoney(tr.querySelector('input[type="number"]')?.value);
     const unit = tr.querySelector('td:nth-child(3)')?.textContent.trim() || '';
     const unitPrice = readUnitPrice(tr);
-    const sum  = safeParseMoney(tr.querySelector('.sum')?.textContent);
+    const sum  = _parseMoney(tr.querySelector('.sum')?.textContent);
     if (qty > 0 && sum > 0) rows.push({name, qty, unit, unitPrice, sum});
   });
   const wrap = document.getElementById('estimate-body');
@@ -186,7 +186,8 @@ function attachEstimateUI(){
     });
   }
   if (btnPdf){
-    btnPdf.addEventListener('click', () => { pdfWithSpinner(async () => { if (!document.querySelector('#estimate-body table')) buildEstimate();
+    btnPdf.addEventListener('click', () => {
+      if (!document.querySelector('#estimate-body table')) buildEstimate();
       const wrap = document.getElementById('estimate-body');
       const address = document.getElementById('estimate-address')?.value?.trim() || '';
       if (!wrap || !wrap.querySelector('table')) { btnPdf.textContent='Нет данных'; setTimeout(()=>btnPdf.textContent='Скачать PDF',1200); return; }
@@ -208,7 +209,8 @@ function attachEstimateUI(){
         <script>window.print();</script>
         </body></html>`;
       const w = window.open('', '_blank'); if (!w) return;
-      w.document.open(); w.document.write(html); w.document.close(); }); });
+      w.document.open(); w.document.write(html); w.document.close();
+    });
   }
   document.querySelectorAll('input[type="number"], .price-input').forEach(inp => {
     inp.addEventListener('input', recalcAll);
@@ -225,7 +227,7 @@ function initScrollFab(){
     const doc = document.documentElement;
     const maxScroll = Math.max(document.body.scrollHeight, doc.scrollHeight) - window.innerHeight;
     const y = window.scrollY || doc.scrollTop || 0;
-    if (maxScroll < 200) { fab.style.display = 'none'; return; } else { fab.style.display = 'grid'; }
+    if (maxScroll < 50) { fab.style.display = 'none'; return; } else { fab.style.display = 'grid'; }
     const pos = y / (maxScroll || 1);
     if (pos < 0.20) { fab.dataset.mode = 'down'; fab.textContent = '↓'; fab.title = 'Вниз'; fab.setAttribute('aria-label','Прокрутить вниз'); }
     else { fab.dataset.mode = 'up'; fab.textContent = '↑'; fab.title = 'Вверх'; fab.setAttribute('aria-label','Прокрутить вверх'); }
@@ -245,27 +247,17 @@ function initScrollFab(){
 }
 document.addEventListener('DOMContentLoaded', initScrollFab);
 
-// Debounce utility
-function debounce(fn, wait=200){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), wait); }; }
+// Theme toggle with persistence
+(function(){
+  const KEY='theme'; const body=document.body;
+  try{ const saved=localStorage.getItem(KEY); if(saved==='light') body.classList.remove('dark'); if(saved==='dark') body.classList.add('dark'); }catch(e){}
+  function update(){ const btn=document.getElementById('themeToggle'); if(!btn) return; const dark=body.classList.contains('dark'); btn.title=dark?'Тёмная тема':'Светлая тема'; btn.setAttribute('aria-pressed', String(dark)); }
+  document.addEventListener('click', e=>{ if(e.target.closest && e.target.closest('#themeToggle')){ body.classList.toggle('dark'); try{localStorage.setItem('theme', body.classList.contains('dark')?'dark':'light');}catch(e){} update(); } });
+  update();
+})();
 
-function safeParseMoney(v){
-  if (v == null) return 0;
-  try {
-    const n = _parseMoney(v);
-    return Number.isFinite(n) && n >= 0 ? n : 0;
-  } catch(e){ return 0; }
-}
-
-const debouncedRecalc = debounce(recalcAll, 200);
-document.addEventListener('input', function(e){
-  if (e.target && (e.target.matches('input[type="number"]') || e.target.classList.contains('price-input'))){
-    debouncedRecalc();
-  }
-});
-
-async function pdfWithSpinner(run){
-  const b = document.getElementById('btn-pdf');
-  if (!b){ await run(); return; }
-  const t = b.textContent; b.textContent='Формируем…'; b.disabled = true;
-  try { await run(); } finally { b.textContent = t; b.disabled = false; }
-}
+// Quickbar proxies
+(function(){
+  function proxy(srcId, dstId){ const s=document.getElementById(srcId), d=document.getElementById(dstId); if(s&&d){ s.addEventListener('click', ()=>d.click()); } }
+  document.addEventListener('DOMContentLoaded', ()=>{ proxy('quick-copy','btn-copy'); proxy('quick-pdf','btn-pdf'); });
+})();
