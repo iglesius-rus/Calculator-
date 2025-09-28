@@ -223,7 +223,7 @@ function attachEstimateUI(){
     inp.addEventListener('change', recalcAll);
   });
 }
-document.addEventListener('DOMContentLoaded', () => { attachEstimateUI(); recalcAll(); });
+recalcAll(); });
 
 // ---- Scroll FAB (умная) ----
 function initScrollFab(){
@@ -251,8 +251,6 @@ function initScrollFab(){
     }
   });
 }
-document.addEventListener('DOMContentLoaded', initScrollFab);
-
 try{ window.doCopy = doCopy; window.doPdf = doPdf; }catch(e){}
 
 // discount-input listener
@@ -293,26 +291,61 @@ function setTheme(mode){
   setTheme(body.classList.contains('dark') ? 'dark' : 'light');
 })();
 
-// === PWA ===
+document.addEventListener('DOMContentLoaded', function() {
+  const MAIN = [
+    { name:'Монтаж настенного кондиционера 07-09 BTU', unit:'компл.', price:12000 },
+    { name:'Монтаж настенного кондиционера 12 BTU', unit:'компл.', price:14000 },
+    { name:'Монтаж настенного кондиционера 18 BTU', unit:'компл.', price:16000 }
+  ];
+
+  let EXTRA = [
+    { name:'Автовышка (от 3 часов)', unit:'ч.', price:2000 },
+    { name:'Демонтаж внутреннего/наружного блока (за каждый)', unit:'блок', price:2000 },
+    { name:'Демонтаж кондиционера 07–12', unit:'шт.', price:3000 },
+    { name:'Демонтаж кондиционера 18–24', unit:'шт.', price:4000 },
+    { name:'Демонтаж/монтаж стеклопакета', unit:'шт.', price:1000 },
+    { name:'Дозаправка кондиционера фреоном', unit:'г.', price:7, step:100 },
+    { name:'Кабель гибкий ПВС 3×1,5 мм², ГОСТ (с монтажом штепсельной вилки)', unit:'м.', price:250 },
+    { name:'Кабель-канал под провод', unit:'м.', price:500 },
+    { name:'Каждый дополнительный выезд', unit:'выезд', price:1000 },
+    { name:'Короб ДКС', unit:'п.м.', price:1200 },
+    { name:'Монтаж дополнительного дренажа без короба', unit:'п.м.', price:150 },
+    { name:'Монтаж корзины', unit:'шт.', price:0, editablePrice:true },
+    { name:'Монтаж наружного блока на вентилируемый фасад', unit:'услуга', price:3500 },
+    { name:'Пайка фреоновых труб (за каждую)', unit:'пайка', price:500 },
+    { name:'Потолок «Армстронг» (разборка/сборка)', unit:'шт.', price:200 },
+    { name:'Пробивка доп. отверстия (бетон, Ø 52 мм)', unit:'отв.', price:2000 },
+    { name:'Пробивка доп. отверстия (ГКЛ и т.п., Ø до 52 мм)', unit:'отв.', price:500 },
+    { name:'Пробивка доп. отверстия (кирпич, Ø 52 мм)', unit:'отв.', price:1000 },
+    { name:'Установка антивандальной решётки', unit:'шт.', price:3000 },
+    { name:'Установка зимнего комплекта', unit:'шт.', price:3000 },
+    { name:'Установка помпы', unit:'шт.', price:2000 },
+    { name:'Чистка кондиционера (внутренний и наружный блок)', unit:'компл.', price:3000 },
+    { name:'Чистка кондиционера — полный комплекс', unit:'компл.', price:4000 },
+    { name:'Штроба в бетоне', unit:'п.м.', price:2500 },
+    { name:'Штроба в кирпиче', unit:'п.м.', price:1500 },
+    { name:'Штроба под дренаж в бетоне', unit:'п.м.', price:800 },
+    { name:'Штроба под дренаж в кирпиче', unit:'п.м.', price:600 },
+    { name:'Элементы короба ДКС', unit:'шт.', price:350 }
+  ];
+  EXTRA = EXTRA.sort((a,b) => a.name.localeCompare(b.name, 'ru'));
+
+  buildMainWithExtras(MAIN);
+  buildTable('#table-extra', EXTRA);
+
+  attachEstimateUI();
+  recalcAll();
+  initScrollFab();
+});
+
+
+// === PWA minimal ===
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./service-worker.js', { scope: './' }).catch(console.error);
   });
 }
-
-let _deferredPrompt = null;
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  _deferredPrompt = e;
-  document.getElementById('installBtn')?.classList.remove('hidden');
-});
-window.addEventListener('appinstalled', () => {
-  document.getElementById('installBtn')?.classList.add('hidden');
-  _deferredPrompt = null;
-});
-document.getElementById('installBtn')?.addEventListener('click', async () => {
-  if (!_deferredPrompt) return;
-  _deferredPrompt.prompt();
-  await _deferredPrompt.userChoice.catch(()=>({}));
-  _deferredPrompt = null;
-});
+let _deferredPrompt=null;
+window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); _deferredPrompt=e; document.getElementById('installBtn')?.classList.remove('hidden'); });
+window.addEventListener('appinstalled', ()=>{ document.getElementById('installBtn')?.classList.add('hidden'); _deferredPrompt=null; });
+document.getElementById('installBtn')?.addEventListener('click', async ()=>{ if(!_deferredPrompt) return; _deferredPrompt.prompt(); await _deferredPrompt.userChoice.catch(()=>({})); _deferredPrompt=null; });
