@@ -127,21 +127,31 @@ function buildEstimate(){
       </tr>`);
     }).join('');
     const disc = applyDiscountToTotal(total);
-    const discRow = disc.pct > 0 ? `<tr>
-      <td colspan="3" style="text-align:right;">Скидка ${disc.pct}%</td>
-      <td style="white-space:nowrap; text-align:right;">−${disc.discount.toLocaleString('ru-RU')} ₽</td>
-    </tr>` : '';
-    const finalRow = `<tr>
-      <td colspan="3" style="text-align:right;"><b>Итого со скидкой</b></td>
-      <td style="white-space:nowrap; text-align:right;"><b>${(disc.withDisc || total).toLocaleString('ru-RU')} ₽</b></td>
-    </tr>`;
+    let discRow = '';
+    let finalRow = '';
+    if (disc.pct > 0){
+      discRow = `<tr>
+        <td colspan="3" style="text-align:right;">Скидка ${disc.pct}%</td>
+        <td style="white-space:nowrap; text-align:right;">−${disc.discount.toLocaleString('ru-RU')} ₽</td>
+      </tr>`;
+      finalRow = `<tr>
+        <td colspan="3" style="text-align:right;"><b>Итого со скидкой</b></td>
+        <td style="white-space:nowrap; text-align:right;"><b>${(disc.withDisc || total).toLocaleString('ru-RU')} ₽</b></td>
+      </tr>`;
+    } else {
+      finalRow = `<tr>
+        <td colspan="3" style="text-align:right;"><b>Итого</b></td>
+        <td style="white-space:nowrap; text-align:right;"><b>${total.toLocaleString('ru-RU')} ₽</b></td>
+      </tr>`;
+    }
+    
     wrap.innerHTML = `
       <div class="kicker" style="margin-bottom:8px;">Автосформированный расчёт</div>
       <div style="overflow:auto;">
         <table class="calc-table">
           <thead><tr><th>Позиция</th><th>Кол-во</th><th>Цена ед.</th><th>Сумма</th></tr></thead>
           <tbody>${items}
-            <tr><td colspan="3" style="text-align:right;"><b>Итого</b></td><td style="text-align:right;"><b>${total.toLocaleString('ru-RU')} ₽</b></td></tr>
+            
             ${discRow}
             ${finalRow}
           </tbody>
@@ -243,7 +253,94 @@ function initScrollFab(){
 }
 document.addEventListener('DOMContentLoaded', initScrollFab);
 
-// === PWA ===
+try{ window.doCopy = doCopy; window.doPdf = doPdf; }catch(e){}
+
+// discount-input listener
+document.addEventListener('input', function(e){
+  if (e.target && e.target.id === 'discount-input'){
+    const wasOpen = !!document.querySelector('#estimate-body table');
+    recalcAll();
+    if (wasOpen) buildEstimate();
+  }
+});
+
+function setTheme(mode){
+  const body = document.body;
+  if(mode==='dark'){ body.classList.add('dark'); }
+  else { body.classList.remove('dark'); }
+  try{ localStorage.setItem('theme', mode); }catch(e){}
+  const btn = document.getElementById('themeToggle');
+  if(btn){
+    const dark = body.classList.contains('dark');
+    btn.title = dark ? 'Тёмная тема' : 'Светлая тема';
+    btn.setAttribute('aria-pressed', String(dark));
+  }
+}
+(function(){
+  const body = document.body;
+  let saved=null;
+  try{ saved = localStorage.getItem('theme'); }catch(e){}
+  if(saved==='dark') body.classList.add('dark');
+  else if(saved==='light') body.classList.remove('dark');
+  else body.classList.remove('dark'); // по умолчанию светлая
+  document.addEventListener('click', function(e){
+    if(e.target && (e.target.id==='themeToggle' || (e.target.closest && e.target.closest('#themeToggle')))){
+      const dark = body.classList.contains('dark');
+      setTheme(dark ? 'light' : 'dark');
+    }
+  });
+  // sync on load
+  setTheme(body.classList.contains('dark') ? 'dark' : 'light');
+})();
+
+document.addEventListener('DOMContentLoaded', () => {
+  const MAIN = [
+    { name:'Монтаж настенного кондиционера 07-09 BTU', unit:'компл.', price:12000 },
+    { name:'Монтаж настенного кондиционера 12 BTU', unit:'компл.', price:14000 },
+    { name:'Монтаж настенного кондиционера 18 BTU', unit:'компл.', price:16000 }
+  ];
+
+  let EXTRA = [
+    { name:'Автовышка (от 3 часов)', unit:'ч.', price:2000 },
+    { name:'Демонтаж внутреннего/наружного блока (за каждый)', unit:'блок', price:2000 },
+    { name:'Демонтаж кондиционера 07–12', unit:'шт.', price:3000 },
+    { name:'Демонтаж кондиционера 18–24', unit:'шт.', price:4000 },
+    { name:'Демонтаж/монтаж стеклопакета', unit:'шт.', price:1000 },
+    { name:'Дозаправка кондиционера фреоном', unit:'г.', price:7, step:100 },
+    { name:'Кабель гибкий ПВС 3×1,5 мм², ГОСТ (с монтажом штепсельной вилки)', unit:'м.', price:250 },
+    { name:'Кабель-канал под провод', unit:'м.', price:500 },
+    { name:'Каждый дополнительный выезд', unit:'выезд', price:1000 },
+    { name:'Короб ДКС', unit:'п.м.', price:1200 },
+    { name:'Монтаж дополнительного дренажа без короба', unit:'п.м.', price:150 },
+    { name:'Монтаж корзины', unit:'шт.', price:0, editablePrice:true },
+    { name:'Монтаж наружного блока на вентилируемый фасад', unit:'услуга', price:3500 },
+    { name:'Пайка фреоновых труб (за каждую)', unit:'пайка', price:500 },
+    { name:'Потолок «Армстронг» (разборка/сборка)', unit:'шт.', price:200 },
+    { name:'Пробивка доп. отверстия (бетон, Ø 52 мм)', unit:'отв.', price:2000 },
+    { name:'Пробивка доп. отверстия (ГКЛ и т.п., Ø до 52 мм)', unit:'отв.', price:500 },
+    { name:'Пробивка доп. отверстия (кирпич, Ø 52 мм)', unit:'отв.', price:1000 },
+    { name:'Установка антивандальной решётки', unit:'шт.', price:3000 },
+    { name:'Установка зимнего комплекта', unit:'шт.', price:3000 },
+    { name:'Установка помпы', unit:'шт.', price:2000 },
+    { name:'Чистка кондиционера (внутренний и наружный блок)', unit:'компл.', price:3000 },
+    { name:'Чистка кондиционера — полный комплекс', unit:'компл.', price:4000 },
+    { name:'Штроба в бетоне', unit:'п.м.', price:2500 },
+    { name:'Штроба в кирпиче', unit:'п.м.', price:1500 },
+    { name:'Штроба под дренаж в бетоне', unit:'п.м.', price:800 },
+    { name:'Штроба под дренаж в кирпиче', unit:'п.м.', price:600 },
+    { name:'Элементы короба ДКС', unit:'шт.', price:350 }
+  ];
+  EXTRA = EXTRA.sort((a,b) => a.name.localeCompare(b.name, 'ru'));
+
+  buildMainWithExtras(MAIN);
+  buildTable('#table-extra', EXTRA);
+
+  try { attachEstimateUI?.(); } catch(e){}
+  try { recalcAll?.(); } catch(e){}
+  try { initScrollFab?.(); } catch(e){}
+});
+
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./service-worker.js', { scope: './' }).catch(console.error);
