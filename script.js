@@ -270,10 +270,6 @@ function setTheme(mode){
   else { body.classList.remove('dark'); }
   try{ localStorage.setItem('theme', mode); }catch(e){}
   const btn = document.getElementById('themeToggle');
-  // Sync <meta name="theme-color"> with theme
-  const metaTheme = document.querySelector('meta[name="theme-color"]');
-  if (metaTheme) metaTheme.setAttribute('content', body.classList.contains('dark') ? '#1e1e1e' : '#f5f5f5');
-
   if(btn){
     const dark = body.classList.contains('dark');
     btn.title = dark ? 'Тёмная тема' : 'Светлая тема';
@@ -286,7 +282,7 @@ function setTheme(mode){
   try{ saved = localStorage.getItem('theme'); }catch(e){}
   if(saved==='dark') body.classList.add('dark');
   else if(saved==='light') body.classList.remove('dark');
-  else { document.body.classList.add('dark'); } // по умолчанию тёмная
+  else body.classList.add('dark'); // по умолчанию тёмная
   document.addEventListener('click', function(e){
     if(e.target && (e.target.id==='themeToggle' || (e.target.closest && e.target.closest('#themeToggle')))){
       const dark = body.classList.contains('dark');
@@ -297,76 +293,26 @@ function setTheme(mode){
   setTheme(body.classList.contains('dark') ? 'dark' : 'light');
 })();
 
-// === PWA: Service Worker registration ===
+// === PWA ===
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./service-worker.js', { scope: './' }).catch(console.error);
   });
 }
 
-// === PWA: install prompt ===
 let _deferredPrompt = null;
-const installBtn = document.getElementById('installBtn');
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   _deferredPrompt = e;
-  if (installBtn) installBtn.classList.remove('hidden');
+  document.getElementById('installBtn')?.classList.remove('hidden');
 });
 window.addEventListener('appinstalled', () => {
-  if (installBtn) installBtn.classList.add('hidden');
+  document.getElementById('installBtn')?.classList.add('hidden');
   _deferredPrompt = null;
 });
-installBtn?.addEventListener('click', async () => {
+document.getElementById('installBtn')?.addEventListener('click', async () => {
   if (!_deferredPrompt) return;
   _deferredPrompt.prompt();
-  const { outcome } = await _deferredPrompt.userChoice.catch(() => ({outcome:'dismissed'}));
+  await _deferredPrompt.userChoice.catch(()=>({}));
   _deferredPrompt = null;
-  if (installBtn) installBtn.classList.add('hidden');
-  console.log('PWA install:', outcome);
 });
-
-
-// === Reset cache button ===
-document.getElementById('resetCacheBtn')?.addEventListener('click', async () => {
-  try {
-    const regs = await navigator.serviceWorker?.getRegistrations?.() || [];
-    await Promise.all(regs.map(r => r.unregister()));
-    const keys = await caches.keys();
-    await Promise.all(keys.map(k => caches.delete(k)));
-  } catch(e) { console.warn(e); }
-  location.reload();
-});
-
-// Ensure theme toggler exists
-document.addEventListener('DOMContentLoaded', () => {
-  const btn = document.getElementById('themeToggle');
-  if(btn && !btn.dataset._bound){
-    btn.dataset._bound = '1';
-    btn.addEventListener('click', () => {
-      const dark = document.body.classList.contains('dark');
-      setTheme(dark ? 'light' : 'dark');
-    });
-  }
-});
-
-// Show install button if supported; else keep it but show hint
-(function() {
-  const btn = document.getElementById('installBtn');
-  if (!btn) return;
-  let supported = false;
-  window.addEventListener('beforeinstallprompt', (e) => {
-    supported = true;
-    e.preventDefault();
-    window._deferredPrompt = e;
-    btn.classList.remove('hidden');
-  });
-  btn.addEventListener('click', async () => {
-    if (window._deferredPrompt) {
-      window._deferredPrompt.prompt();
-      window._deferredPrompt = null;
-      btn.classList.add('hidden');
-    } else {
-      alert('Если кнопка установки не появилась автоматически: открой меню браузера и выбери «Добавить на главный экран». На iPhone: «Поделиться» → «На экран Домой».');
-    }
-  });
-})();

@@ -1,6 +1,7 @@
-const APP_VERSION = 'v2809_003';
+
+const APP_VERSION = 'v2809_001';
 const STATIC_CACHE = `static-${APP_VERSION}`;
-const OFFLINE_URL = '/offline.html';
+const OFFLINE_URL = 'offline.html';
 
 const ASSETS = [
   './',
@@ -20,7 +21,7 @@ self.addEventListener('install', event => {
 
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keys => Promise.all(keys.map(k => k !== STATIC_CACHE ? caches.delete(k) : null)))
+    caches.keys().then(keys => Promise.all(keys.filter(k => k !== STATIC_CACHE).map(k => caches.delete(k))))
   );
   self.clients.claim();
 });
@@ -29,6 +30,7 @@ self.addEventListener('fetch', event => {
   const req = event.request;
   const url = new URL(req.url);
   if (url.origin !== location.origin) return;
+
   if (req.mode === 'navigate' || req.destination === 'document') {
     event.respondWith((async () => {
       try {
@@ -38,18 +40,23 @@ self.addEventListener('fetch', event => {
         return fresh;
       } catch (e) {
         const cache = await caches.open(STATIC_CACHE);
-        const cached = await cache.match('index.html');
-        return cached || cache.match(OFFLINE_URL);
+        return (await cache.match('index.html')) || cache.match(OFFLINE_URL);
       }
     })());
     return;
   }
+
   event.respondWith((async () => {
     const cache = await caches.open(STATIC_CACHE);
     const cached = await cache.match(req);
     if (cached) return cached;
-    const fresh = await fetch(req).catch(() => null);
-    if (fresh && fresh.ok) cache.put(req, fresh.clone());
-    return fresh || cache.match(OFFLINE_URL);
+    try {
+      const fresh = await fetch(req);
+      if (fresh && fresh.ok) cache.put(req, fresh.clone());
+      return fresh;
+    } catch(e) {
+      if (req.destination === 'document') return cache.match(OFFLINE_URL);
+      throw e;
+    }
   })());
 });
