@@ -83,7 +83,7 @@ body.dark .icon-btn .icon-moon {display:inline;}
 .vano-link:hover{opacity:1;}
 
 /* Floating footer */
-.site-footer{
+.site-footer{ text-align:center; 
   position: fixed;
   left: 0; right: 0; bottom: 0;
   z-index: 45;

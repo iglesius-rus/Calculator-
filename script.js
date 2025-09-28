@@ -1,7 +1,3 @@
-// Тема
-const _themeBtn = document.getElementById('theme-toggle'); if (_themeBtn) _themeBtn.addEventListener('click', () => {
-  document.body.classList.toggle('dark');
-  try { localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light'); } catch(e){}
 });
 try { const savedTheme = localStorage.getItem('theme'); if (savedTheme === 'light') document.body.classList.remove('dark'); } catch(e){}
 
@@ -274,6 +270,10 @@ function setTheme(mode){
   else { body.classList.remove('dark'); }
   try{ localStorage.setItem('theme', mode); }catch(e){}
   const btn = document.getElementById('themeToggle');
+  // Sync <meta name="theme-color"> with theme
+  const metaTheme = document.querySelector('meta[name="theme-color"]');
+  if (metaTheme) metaTheme.setAttribute('content', body.classList.contains('dark') ? '#1e1e1e' : '#f5f5f5');
+
   if(btn){
     const dark = body.classList.contains('dark');
     btn.title = dark ? 'Тёмная тема' : 'Светлая тема';
@@ -286,7 +286,7 @@ function setTheme(mode){
   try{ saved = localStorage.getItem('theme'); }catch(e){}
   if(saved==='dark') body.classList.add('dark');
   else if(saved==='light') body.classList.remove('dark');
-  else body.classList.remove('dark'); // по умолчанию светлая
+  else body.classList.add('dark'); // по умолчанию тёмная
   document.addEventListener('click', function(e){
     if(e.target && (e.target.id==='themeToggle' || (e.target.closest && e.target.closest('#themeToggle')))){
       const dark = body.classList.contains('dark');
@@ -296,3 +296,31 @@ function setTheme(mode){
   // sync on load
   setTheme(body.classList.contains('dark') ? 'dark' : 'light');
 })();
+
+// === PWA: Service Worker registration ===
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js').catch(console.error);
+  });
+}
+
+// === PWA: install prompt ===
+let _deferredPrompt = null;
+const installBtn = document.getElementById('installBtn');
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  _deferredPrompt = e;
+  if (installBtn) installBtn.classList.remove('hidden');
+});
+window.addEventListener('appinstalled', () => {
+  if (installBtn) installBtn.classList.add('hidden');
+  _deferredPrompt = null;
+});
+installBtn?.addEventListener('click', async () => {
+  if (!_deferredPrompt) return;
+  _deferredPrompt.prompt();
+  const { outcome } = await _deferredPrompt.userChoice.catch(() => ({outcome:'dismissed'}));
+  _deferredPrompt = null;
+  if (installBtn) installBtn.classList.add('hidden');
+  console.log('PWA install:', outcome);
+});
