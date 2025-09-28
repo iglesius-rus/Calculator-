@@ -42,8 +42,8 @@ function buildMainWithExtras(MAIN){
     rows.push(m);
     // добавляем доп. трассу ТОЛЬКО для монтажей с BTU
     if (/BTU/i.test(m.name)){
-      const key = /07-09/.test(m.name) ? '07-09' : /12/.test(m.name) ? '12' : /18/.test(m.name) ? '18' : null;
-rows.push(EXTRA_MAP[key]);
+      const key = m.name.includes('07-09') ? '07-09' : (m.name.includes('12') && !m.name.includes('012') ? '12' : '18');
+      rows.push(EXTRA_MAP[key]);
     }
   });
   tbody.innerHTML = rows.map(r => rowHTML(r)).join('');
