@@ -1,3 +1,5 @@
+/* © Вано
+   iglesius21@gmail.com */
 /* База */
 * { box-sizing: border-box; }
 html, body { height: 100%; }
@@ -95,3 +97,16 @@ main{ padding-bottom: 72px; } /* space so content isn't hidden */
 /* Lift the scroll fab above footer */
 .scroll-fab{ bottom: 90px; } /* was 50px */
 
+
+
+/* Light theme explicit variables */
+body:not(.dark) { --input-border:#2b2b2b; --input-bg:#ffffff; }
+
+/* Buttons visibility on light */
+body:not(.dark) .btn-outline{
+  border-color: rgba(0,0,0,.45);
+  color: #111111;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+body:not(.dark) .btn-outline:hover{ background: rgba(0,0,0,.06); }
+body:not(.dark) .btn-outline:active{ transform: translateY(1px); }

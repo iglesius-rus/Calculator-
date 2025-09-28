@@ -1,3 +1,5 @@
+/* © Вано
+   iglesius21@gmail.com */
 try { const savedTheme = localStorage.getItem('theme'); if (savedTheme === 'light') document.body.classList.remove('dark'); } catch(e){}
 
 /* Аккордеон */
