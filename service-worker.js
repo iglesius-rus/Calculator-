@@ -1,16 +1,16 @@
-const APP_VERSION = 'v2809_001';
+const APP_VERSION = 'v2809_002';
 const STATIC_CACHE = `static-${APP_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/style.css',
-  '/script.js',
-  '/offline.html',
-  '/icon-192.png',
-  '/icon-512.png',
-  '/manifest.webmanifest'
+  './',
+  'index.html',
+  'style.css',
+  'script.js',
+  'offline.html',
+  'manifest.webmanifest',
+  'icon-192.png',
+  'icon-512.png'
 ];
 
 self.addEventListener('install', event => {
@@ -34,11 +34,11 @@ self.addEventListener('fetch', event => {
       try {
         const fresh = await fetch(req);
         const cache = await caches.open(STATIC_CACHE);
-        cache.put('/index.html', fresh.clone());
+        cache.put('index.html', fresh.clone());
         return fresh;
       } catch (e) {
         const cache = await caches.open(STATIC_CACHE);
-        const cached = await cache.match('/index.html');
+        const cached = await cache.match('index.html');
         return cached || cache.match(OFFLINE_URL);
       }
     })());
