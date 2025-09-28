@@ -1,4 +1,4 @@
-const APP_VERSION = 'v2809_002';
+const APP_VERSION = 'v2809_003';
 const STATIC_CACHE = `static-${APP_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
