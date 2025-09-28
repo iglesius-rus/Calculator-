@@ -1,39 +1,57 @@
+<!-- © Вано
+     iglesius21@gmail.com -->
 <!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Калькулятор стоимости работ — Nord Чеб</title>
-<link rel="stylesheet" href="style.css?v007"/>
+<title>Калькулятор стоимости работ</title>
+<link rel="stylesheet" href="style.css?v2809_010"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
+
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#1e1e1e">
+<link rel="apple-touch-icon" href="./icon-192.png">
 </head>
 <body class="dark">
-<main>
+\1
+<header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+  <h1 style="margin:0;">Калькулятор стоимости работ</h1>
+  <button id="theme-toggle" class="btn-outline">🌓 Тема</button>
+</header>
+  <header class="topbar">
+    <div class="topbar-left"><span class="app-title">Калькулятор</span></div>
+    <div class="topbar-right">
+      <button id="themeToggle" class="icon-btn" aria-label="Переключить тему" title="Тема">
+        <svg class="icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+          <path d="M12 4V2m0 20v-2M4 12H2m20 0h-2M5.64 5.64L4.22 4.22m15.56 15.56-1.42-1.42M5.64 18.36 4.22 19.78m15.56-15.56-1.42 1.42" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2" fill="none"/>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" fill="currentColor"/>
+        </svg>
+      </button>
+          <button id="installBtn" class="icon-btn hidden" aria-label="Установить приложение" title="Установить">⬇️</button>
+    </div>
+  </header>
   <div class="container">
-    <h1 style="margin:0 0 8px;">Калькулятор стоимости работ</h1>
-    <div class="kicker">главная страница</div>
-
-    <section aria-labelledby="main-works">
-  <h2 id="main-works" class="section-title">Основные работы</h2>
-  <table class="calc-table" id="table-main">
+<div class="section-title">Основные работы</div>
+    <table class="calc-table" id="table-main">
       <thead>
         <tr><th>Наименование работ</th><th>Кол-во</th><th>Ед. изм.</th><th>Цена ед.</th><th>Цена</th></tr>
       </thead>
       <tbody></tbody>
     </table>
-</section>
 
-    <section aria-labelledby="extra-works">
-  <h2 id="extra-works" class="section-title">Дополнительные работы</h2>
-  <table class="calc-table" id="table-extra">
+    <div class="section-title">Дополнительные работы</div>
+    <table class="calc-table" id="table-extra">
       <thead>
         <tr><th>Наименование работ</th><th>Кол-во</th><th>Ед. изм.</th><th>Цена ед.</th><th>Цена</th></tr>
       </thead>
       <tbody></tbody>
     </table>
-</section>
 
     <div class="total-line"><b>Итого:</b> <span id="grand-total">0</span> ₽</div>
 
@@ -45,6 +63,12 @@
       Скидка <b><span id="discount-pct">0</span>%</b>: −<b><span id="discount-amount">0</span> ₽</b>. Итого со скидкой: <b><span id="grand-with-discount">0</span> ₽</b>
     </div>
 
+    <div class="est-meta" id="address-under-discount" style="margin-top:12px;">
+      <label for="estimate-address" style="display:block;font-size:14px;opacity:.85;margin-bottom:6px;">Адрес:</label>
+      <input id="estimate-address" type="text" placeholder="Укажите адрес объекта" style="width:100%;max-width:600px;"/>
+    </div>
+
+
     <div class="est-actions" style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap;">
       <button class="btn-outline" id="btn-copy">Скопировать</button>
       <button class="btn-outline" id="btn-pdf">Скачать PDF</button>
@@ -53,63 +77,14 @@
     <div id="estimate" class="container hidden" style="margin-top:12px;">
       <h2 style="margin:0 0 8px;">Смета</h2>
       <div id="estimate-body">Пока ничего не выбрано.</div>
-      <div class="est-meta" style="margin-top:12px;">
-        <label for="estimate-address" style="display:block;font-size:14px;opacity:.85;margin-bottom:6px;">Адрес:</label>
-        <input id="estimate-address" type="text" placeholder="Укажите адрес объекта" style="width:100%;max-width:600px;"/>
-      </div>
+      
     </div>
   </div>
 </main>
 
 <div id="scrollFab" class="scroll-fab" role="button" aria-label="Прокрутить страницу" title="Вверх">↑</div>
-<footer>Версия: 2409_007<br/>© Суперкондиционерщик Вано 2025</footer>
+<footer class="site-footer">v1.120<br/>© Суперкондиционерщик Вано 2025</footer>
 
-<script src="script.js?v007"></script>
-<script>
-  // Данные — MAIN и EXTRA
-  const MAIN = [
-    { name:'Монтаж настенного кондиционера 07-09 BTU', unit:'компл.', price:12000 },
-    { name:'Монтаж настенного кондиционера 12 BTU', unit:'компл.', price:14000 },
-    { name:'Монтаж настенного кондиционера 18 BTU', unit:'компл.', price:16000 }
-  ];
-
-  let EXTRA = [
-    { name:'Автовышка (от 3 часов)', unit:'ч.', price:2000 },
-    { name:'Демонтаж внутреннего/наружного блока (за каждый)', unit:'блок', price:2000 },
-    { name:'Демонтаж кондиционера 07–12', unit:'шт.', price:3000 },
-    { name:'Демонтаж кондиционера 18–24', unit:'шт.', price:4000 },
-    { name:'Демонтаж/монтаж стеклопакета', unit:'шт.', price:1000 },
-    { name:'Дозаправка кондиционера фреоном', unit:'г.', price:7, step:100 },
-    { name:'Кабель гибкий ПВС 3×1,5 мм², ГОСТ (с монтажом штепсельной вилки)', unit:'м.', price:250 },
-    { name:'Кабель-канал под провод', unit:'м.', price:500 },
-    { name:'Каждый дополнительный выезд', unit:'выезд', price:1000 },
-    { name:'Короб ДКС', unit:'п.м.', price:1200 },
-    { name:'Монтаж дополнительного дренажа без короба', unit:'п.м.', price:150 },
-    { name:'Монтаж корзины', unit:'шт.', price:0, editablePrice:true },
-    { name:'Монтаж наружного блока на вентилируемый фасад', unit:'услуга', price:3500 },
-    { name:'Пайка фреоновых труб (за каждую)', unit:'пайка', price:500 },
-    { name:'Потолок «Армстронг» (разборка/сборка)', unit:'шт.', price:200 },
-    { name:'Пробивка доп. отверстия (бетон, Ø 52 мм)', unit:'отв.', price:2000 },
-    { name:'Пробивка доп. отверстия (ГКЛ и т.п., Ø до 52 мм)', unit:'отв.', price:500 },
-    { name:'Пробивка доп. отверстия (кирпич, Ø 52 мм)', unit:'отв.', price:1000 },
-    { name:'Установка антивандальной решётки', unit:'шт.', price:3000 },
-    { name:'Установка зимнего комплекта', unit:'шт.', price:3000 },
-    { name:'Установка помпы', unit:'шт.', price:2000 },
-    { name:'Чистка кондиционера (внутренний и наружный блок)', unit:'компл.', price:3000 },
-    { name:'Чистка кондиционера — полный комплекс', unit:'компл.', price:4000 },
-    { name:'Штроба в бетоне', unit:'п.м.', price:2500 },
-    { name:'Штроба в кирпиче', unit:'п.м.', price:1500 },
-    { name:'Штроба под дренаж в бетоне', unit:'п.м.', price:800 },
-    { name:'Штроба под дренаж в кирпиче', unit:'п.м.', price:600 },
-    { name:'Элементы короба ДКС', unit:'шт.', price:350 }
-  ];
-
-  // Сортировка EXTRA по алфавиту (русский)
-  EXTRA = EXTRA.sort((a,b) => a.name.localeCompare(b.name, 'ru'));
-
-  // Построение таблиц
-  buildMainWithExtras(MAIN);
-  buildTable('#table-extra', EXTRA);
-</script>
+<script src="script.js?v2809_010"></script>
 </body>
 </html>
