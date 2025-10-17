@@ -33,9 +33,9 @@ function rowHTML(r){
 function buildMainWithExtras(MAIN){
   const tbody = document.querySelector('#table-main tbody');
   const EXTRA_MAP = {
-    '07-09': { name:'Дополнительная трасса (за 1 м) 07–09 (BTU)', unit:'п.м.', price:1500 },
-    '12':    { name:'Дополнительная трасса (за 1 м) 12 (BTU)',     unit:'п.м.', price:1700 },
-    '18':    { name:'Дополнительная трасса (за 1 м) 18 (BTU)',     unit:'п.м.', price:1700 }
+    '07-09': { name:'Дополнительная трасса (за 1 м) 07–09 (BTU)', unit:'п.м.', price:2000 },
+    '12':    { name:'Дополнительная трасса (за 1 м) 12 (BTU)',     unit:'п.м.', price:2500 },
+    '18':    { name:'Дополнительная трасса (за 1 м) 18 (BTU)',     unit:'п.м.', price:2500 }
   };
   const rows = [];
   MAIN.forEach(m => {
@@ -296,9 +296,9 @@ function setTheme(mode){
 
 document.addEventListener('DOMContentLoaded', () => {
   const MAIN = [
-    { name:'Монтаж настенного кондиционера 07-09 BTU', unit:'компл.', price:12000 },
-    { name:'Монтаж настенного кондиционера 12 BTU', unit:'компл.', price:14000 },
-    { name:'Монтаж настенного кондиционера 18 BTU', unit:'компл.', price:16000 }
+    { name:'Монтаж настенного кондиционера 07-09 BTU', unit:'компл.', price:10000 },
+    { name:'Монтаж настенного кондиционера 12 BTU', unit:'компл.', price:12000 },
+    { name:'Монтаж настенного кондиционера 18 BTU', unit:'компл.', price:14000 }
   ];
 
   let EXTRA = [
