@@ -163,67 +163,169 @@ function buildEstimate(){
 }
 
 function estimateToPlainText(){
-  const wrap = document.getElementById('estimate-body'); if (!wrap) return '';
-  const rows = []; const table = wrap.querySelector('table'); if (!table) return '';
+  const wrap = document.getElementById('estimate-body');
+  if (!wrap) return '';
+  const table = wrap.querySelector('table');
+  if (!table) return '';
+  
+  const rows = [];
   table.querySelectorAll('tbody tr').forEach(tr => {
     const tds = tr.querySelectorAll('td');
-    if (tds.length === 4){
+    if (tds.length === 4) {
       rows.push(`${tds[0].textContent.trim()} — ${tds[1].textContent.trim()} × ${tds[2].textContent.trim()} = ${tds[3].textContent.trim()}`);
     }
   });
+  
   const address = document.getElementById('estimate-address')?.value?.trim();
   const totalLine = wrap.querySelector('tbody tr:last-child td:last-child')?.textContent?.trim();
+  
   return (rows.join('\n') + (totalLine ? `\nИтого: ${totalLine}` : '') + (address ? `\nАдрес: ${address}` : '')).trim();
 }
 
-function attachEstimateUI(){
+// Новая функция для создания PDF
+function generatePDF() {
+  if (!document.querySelector('#estimate-body table')) buildEstimate();
+  
+  const wrap = document.getElementById('estimate-body');
+  const address = document.getElementById('estimate-address')?.value?.trim() || '';
+  
+  if (!wrap || !wrap.querySelector('table')) {
+    const btnPdf = document.getElementById('btn-pdf');
+    btnPdf.textContent = 'Нет данных';
+    setTimeout(() => btnPdf.textContent = 'Скачать PDF', 1200);
+    return;
+  }
+
+  // Создаем HTML для PDF
+  const title = 'Смета' + (address ? ' — ' + address : '');
+  const date = new Date().toLocaleString('ru-RU');
+  
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>${title}</title>
+      <style>
+        body { 
+          font-family: Arial, sans-serif; 
+          margin: 20px; 
+          color: #000;
+          background: #fff;
+        }
+        h1 { 
+          margin: 0 0 10px; 
+          font-size: 22px; 
+          color: #333;
+          border-bottom: 2px solid #333;
+          padding-bottom: 5px;
+        }
+        .meta { 
+          font-size: 14px; 
+          color: #666; 
+          margin-bottom: 15px;
+        }
+        table { 
+          width: 100%; 
+          border-collapse: collapse; 
+          margin-top: 15px;
+          font-size: 14px;
+        }
+        th { 
+          background: #f5f5f5; 
+          font-weight: bold;
+          padding: 10px 8px;
+          border: 1px solid #ddd;
+          text-align: left;
+        }
+        td { 
+          padding: 8px; 
+          border: 1px solid #ddd;
+          vertical-align: top;
+        }
+        .total-row {
+          background: #f9f9f9;
+          font-weight: bold;
+        }
+        .discount-row {
+          color: #d32f2f;
+        }
+        @media print {
+          body { margin: 15mm; }
+          .no-print { display: none; }
+        }
+      </style>
+    </head>
+    <body>
+      <h1>${title}</h1>
+      <div class="meta">
+        <div><strong>Дата составления:</strong> ${date}</div>
+        ${address ? `<div><strong>Адрес объекта:</strong> ${address}</div>` : ''}
+      </div>
+      ${wrap.innerHTML}
+    </body>
+    </html>
+  `;
+
+  // Открываем в новом окне для печати/сохранения как PDF
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    alert('Разрешите всплывающие окна для создания PDF');
+    return;
+  }
+  
+  printWindow.document.open();
+  printWindow.document.write(htmlContent);
+  printWindow.document.close();
+  
+  // Даем время на загрузку контента перед печатью
+  setTimeout(() => {
+    printWindow.print();
+  }, 500);
+}
+
+function attachEstimateUI() {
   const btnCopy = document.getElementById('btn-copy');
   const btnPdf = document.getElementById('btn-pdf');
-  if (btnCopy){
+  
+  if (btnCopy) {
     btnCopy.addEventListener('click', async () => {
       if (!document.querySelector('#estimate-body table')) buildEstimate();
       const text = estimateToPlainText();
-      if (!text){ btnCopy.textContent='Нет данных'; setTimeout(()=>btnCopy.textContent='Скопировать',1200); return; }
-      try { await navigator.clipboard.writeText(text); btnCopy.textContent='Скопировано ✅'; setTimeout(()=>btnCopy.textContent='Скопировать',1500); }
-      catch(e){
-        const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta);
-        ta.select(); try { document.execCommand('copy'); } catch(e2){} document.body.removeChild(ta);
-        btnCopy.textContent='Скопировано ✅'; setTimeout(()=>btnCopy.textContent='Скопировать',1500);
+      if (!text) {
+        btnCopy.textContent = 'Нет данных';
+        setTimeout(() => btnCopy.textContent = 'Скопировать', 1200);
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(text);
+        btnCopy.textContent = 'Скопировано ✅';
+        setTimeout(() => btnCopy.textContent = 'Скопировать', 1500);
+      } catch(e) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand('copy');
+        } catch(e2) {}
+        document.body.removeChild(ta);
+        btnCopy.textContent = 'Скопировано ✅';
+        setTimeout(() => btnCopy.textContent = 'Скопировать', 1500);
       }
     });
   }
-  if (btnPdf){
-    btnPdf.addEventListener('click', () => {
-      if (!document.querySelector('#estimate-body table')) buildEstimate();
-      const wrap = document.getElementById('estimate-body');
-      const address = document.getElementById('estimate-address')?.value?.trim() || '';
-      if (!wrap || !wrap.querySelector('table')) { btnPdf.textContent='Нет данных'; setTimeout(()=>btnPdf.textContent='Скачать PDF',1200); return; }
-      const inner = wrap.innerHTML.replace(/<\/script>/ig, '<\\/script>');
-      const title = 'Смета' + (address ? ' — ' + address : '');
-      const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title>
-        <style>
-          body { font-family: Arial, sans-serif; margin: 24px; }
-          h1 { margin: 0 0 10px; font-size: 20px; }
-          .meta { font-size: 12px; opacity: .8; margin-bottom: 8px; }
-          table { width: 100%; border-collapse: collapse; margin-top: 6px; }
-          th, td { border-bottom: 1px solid #ccc; padding: 8px; text-align: left; }
-          th { background: #f5f5f5; }
-        </style></head><body>
-        <h1>${title}</h1>
-        <div class="meta">Дата: ${new Date().toLocaleString('ru-RU')}</div>
-        ${address ? `<div class="meta"><b>Адрес:</b> ${address}</div>` : ''}
-        ${inner}
-        <script>window.print();</script>
-        </body></html>`;
-      const w = window.open('', '_blank'); if (!w) return;
-      w.document.open(); w.document.write(html); w.document.close();
-    });
+  
+  if (btnPdf) {
+    btnPdf.addEventListener('click', generatePDF);
   }
+
   document.querySelectorAll('input[type="number"], .price-input').forEach(inp => {
     inp.addEventListener('input', recalcAll);
     inp.addEventListener('change', recalcAll);
   });
 }
+
 document.addEventListener('DOMContentLoaded', () => { attachEstimateUI(); recalcAll(); });
 
 // ---- Scroll FAB (умная) ----
