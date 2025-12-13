@@ -1,7 +1,7 @@
 /* © Вано
    iglesius21@gmail.com */
 
-const APP_VERSION = 'v2809_010';
+const APP_VERSION = 'v1312_01';
 const STATIC_CACHE = `static-${APP_VERSION}`;
 const OFFLINE_URL = 'offline.html';
 

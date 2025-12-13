@@ -9,6 +9,23 @@ function saveState(){ try { const openIds = Array.from(document.querySelectorAll
 function restoreState(){ try { const openIds = JSON.parse(localStorage.getItem('openPanels') || '[]'); openIds.forEach(id => { const panel = document.getElementById(id); const btn = panel?.previousElementSibling; if (panel && btn) { panel.classList.add('open'); setMaxHeight(panel, true); btn.classList.add('active'); btn.setAttribute('aria-expanded', 'true'); } }); } catch(e){} }
 
 // ===== Калькулятор стоимости =====
+const RC_FACTOR = 1.1112; // +11.12%
+let RC_ON = false;
+try { RC_ON = localStorage.getItem('rc') === '1'; } catch(e){}
+
+function updateRcButton(){
+  const btn = document.getElementById('rcToggle');
+  if (!btn) return;
+  btn.classList.toggle('active', !!RC_ON);
+  btn.setAttribute('aria-pressed', String(!!RC_ON));
+  btn.title = RC_ON ? 'РС включён (+11.12%)' : 'РС (+11.12%)';
+}
+function setRc(on){
+  RC_ON = !!on;
+  try { localStorage.setItem('rc', RC_ON ? '1' : '0'); } catch(e){}
+  updateRcButton();
+}
+
 function format(n) { return n.toLocaleString('ru-RU'); }
 function _parseMoney(t){
   if (t === null || t === undefined) return 0;
@@ -53,8 +70,8 @@ function buildTable(id, rows){ const tbody = document.querySelector(id + ' tbody
 
 function readUnitPrice(tr){
   const priceInput = tr.querySelector('.price-input');
-  if (priceInput) return _parseMoney(priceInput.value);
-  return _parseMoney(tr.querySelector('.price')?.textContent);
+  const base = priceInput ? _parseMoney(priceInput.value) : _parseMoney(tr.querySelector('.price')?.textContent);
+  return base * (RC_ON ? RC_FACTOR : 1);
 }
 
 function recalcAll(){
@@ -326,7 +343,19 @@ function attachEstimateUI() {
   });
 }
 
-document.addEventListener('DOMContentLoaded', () => { attachEstimateUI(); recalcAll(); });
+function initRcToggle(){
+  updateRcButton();
+  const btn = document.getElementById('rcToggle');
+  if (!btn) return;
+  btn.addEventListener('click', () => {
+    const wasOpen = !!document.querySelector('#estimate-body table');
+    setRc(!RC_ON);
+    recalcAll();
+    if (wasOpen) buildEstimate();
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => { attachEstimateUI(); initRcToggle(); recalcAll(); });
 
 // ---- Scroll FAB (умная) ----
 function initScrollFab(){
