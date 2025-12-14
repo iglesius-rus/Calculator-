@@ -70,13 +70,15 @@ body.dark .scroll-fab{ border-color: rgba(255,255,255,.2); }
 /* === Topbar with theme toggle === */
 .topbar {position:sticky; top:0; z-index:50; display:flex; align-items:center; justify-content:space-between;
   padding:10px 12px; background:var(--header); border-bottom:1px solid #0001; backdrop-filter:saturate(120%) blur(6px);}
+.topbar-right{display:flex; align-items:center; gap:8px;}
 body.dark .topbar {border-color:#fff1;}
 .app-title {font-weight:700; opacity:.85;}
 .icon-btn {display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:10px;
   border:1px solid #0002; background:transparent; color:var(--text); cursor:pointer;}
 body.dark .icon-btn {border-color:#fff2;}
-.icon-btn.active{ background: rgba(255,255,255,.12); font-weight:700; }
+.icon-btn.active{ background: rgba(255,255,255,.10); }
 body:not(.dark) .icon-btn.active{ background: rgba(0,0,0,.08); }
+.rs-btn{ width:auto; padding:0 10px; font-weight:800; letter-spacing:.02em; }
 .icon-btn .icon-sun {display:inline;}
 .icon-btn .icon-moon {display:none;}
 body.dark .icon-btn .icon-sun {display:none;}

@@ -1,5 +1,5 @@
-/* © Вано | iglesius21@gmail.com */
 {
+  "__comment": "© Вано | iglesius21@gmail.com",
   "name": "Калькулятор стоимости работ",
   "short_name": "Калькулятор",
   "start_url": "./?source=pwa",
