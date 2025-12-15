@@ -1,7 +1,7 @@
 /* © Вано
    iglesius21@gmail.com */
 
-const APP_VERSION = 'v1412_01';
+const APP_VERSION = '1512_01';
 const STATIC_CACHE = `static-${APP_VERSION}`;
 const OFFLINE_URL = 'offline.html';
 
@@ -47,12 +47,7 @@ self.addEventListener('fetch', event => {
   }
   event.respondWith((async () => {
     const cache = await caches.open(STATIC_CACHE);
-    let cached = await cache.match(req);
-    // если в запросе есть ?v=..., пробуем найти ресурс без query
-    if (!cached && url.search) {
-      const key = url.pathname.replace(/^\/+/, '') || 'index.html';
-      cached = await cache.match(key);
-    }
+    const cached = await cache.match(req);
     if (cached) return cached;
     try {
       const fresh = await fetch(req);
