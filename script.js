@@ -10,6 +10,26 @@ function restoreState(){ try { const openIds = JSON.parse(localStorage.getItem('
 
 // ===== Калькулятор стоимости =====
 function format(n) { return n.toLocaleString('ru-RU'); }
+
+// ===== РС (+11.12%) =====
+const RS_MULT = 1.1112;
+const RS_KEY = 'rsEnabled';
+
+function isRsEnabled(){
+  try { return localStorage.getItem(RS_KEY) === '1'; } catch(e) { return false; }
+}
+function setRsEnabled(v){
+  try { localStorage.setItem(RS_KEY, v ? '1' : '0'); } catch(e) {}
+}
+function rsFactor(){ return isRsEnabled() ? RS_MULT : 1; }
+function syncRsButton(){
+  const btn = document.getElementById('rsToggle');
+  if(!btn) return;
+  const on = isRsEnabled();
+  btn.classList.toggle('active', on);
+  btn.setAttribute('aria-pressed', String(on));
+  btn.title = on ? 'РС включён (+11.12%)' : 'РС выключен (+11.12%)';
+}
 function _parseMoney(t){
   if (t === null || t === undefined) return 0;
   if (typeof t === 'number') return t;
@@ -17,15 +37,17 @@ function _parseMoney(t){
   return parseFloat(s) || 0;
 }
 function rowHTML(r){
+  const base = _parseMoney(r.price);
+  const editableVal = (base > 0) ? String(base) : '';
   const priceCell = r.editablePrice
-    ? `<input type="number" class="price-input" min="0" step="1" value="${_parseMoney(r.price)}" style="width:90px; text-align:center;"> ₽`
-    : `${format(_parseMoney(r.price))} ₽`;
+    ? `<input type="number" class="price-input" min="0" step="1" value="${editableVal}" style="width:90px; text-align:center;"> ₽`
+    : `<span class="price-text">${format(base)} ₽</span>`;
   return `
     <tr>
       <td data-label="Наименование работ">${r.name}</td>
       <td data-label="Кол-во"><input type="number" inputmode="numeric" pattern="[0-9]*" min="0" step="1" value=""></td>
       <td data-label="Ед. изм.">${r.unit}</td>
-      <td class="price" data-label="Цена ед.">${priceCell}</td>
+      <td class="price" data-label="Цена ед." data-base-price="${base}">${priceCell}</td>
       <td class="sum" data-sum="0" data-label="Цена">0 ₽</td>
     </tr>`;
 }
@@ -46,22 +68,50 @@ function buildMainWithExtras(MAIN){
       rows.push(EXTRA_MAP[key]);
     }
   });
+
+  // после доп. трассы 18 (BTU)
+  rows.push(
+    { name:'Монтаж сплит-системы на готовую трассу 07-09 BTU', unit:'компл.', price:6000 },
+    { name:'Монтаж сплит-системы на готовую трассу 12 BTU',    unit:'компл.', price:7000 },
+    { name:'Монтаж сплит-системы на готовую трассу 18 BTU',    unit:'компл.', price:8000 }
+  );
+
   tbody.innerHTML = rows.map(r => rowHTML(r)).join('');
 }
 
 function buildTable(id, rows){ const tbody = document.querySelector(id + ' tbody'); tbody.innerHTML = rows.map(r=>rowHTML(r)).join(''); }
 
-function readUnitPrice(tr){
+function readBaseUnitPrice(tr){
   const priceInput = tr.querySelector('.price-input');
   if (priceInput) return _parseMoney(priceInput.value);
+  const base = tr.querySelector('.price')?.dataset?.basePrice;
+  if (base !== undefined) return _parseMoney(base);
   return _parseMoney(tr.querySelector('.price')?.textContent);
+}
+
+function isEditablePriceRow(tr){ return !!tr.querySelector('.price-input'); }
+
+function effectiveUnitPriceRounded(tr){
+  const base = readBaseUnitPrice(tr);
+  const eff = Math.max(0, base) * rsFactor();
+  return Math.round(eff);
+}
+
+function syncUnitPriceDisplay(tr){
+  // для редактируемых цен не трогаем поле ввода
+  if (isEditablePriceRow(tr)) return;
+  const td = tr.querySelector('.price');
+  const span = td?.querySelector('.price-text');
+  if (!td || !span) return;
+  span.textContent = format(effectiveUnitPriceRounded(tr)) + ' ₽';
 }
 
 function recalcAll(){
   let total = 0;
   document.querySelectorAll('#table-main tbody tr, #table-extra tbody tr').forEach(tr => {
     const qty = _parseMoney(tr.querySelector('input[type="number"]')?.value);
-    const price = readUnitPrice(tr);
+    syncUnitPriceDisplay(tr);
+    const price = effectiveUnitPriceRounded(tr);
     const sum = Math.max(0, qty) * Math.max(0, price);
     const cell = tr.querySelector('.sum');
     if (cell){
@@ -109,7 +159,7 @@ function buildEstimate(){
     const name = tr.querySelector('td:nth-child(1)')?.textContent.trim() || '';
     const qty  = _parseMoney(tr.querySelector('input[type="number"]')?.value);
     const unit = tr.querySelector('td:nth-child(3)')?.textContent.trim() || '';
-    const unitPrice = readUnitPrice(tr);
+    const unitPrice = effectiveUnitPriceRounded(tr);
     const sum  = _parseMoney(tr.querySelector('.sum')?.textContent);
     if (qty > 0 && sum > 0) rows.push({name, qty, unit, unitPrice, sum});
   });
@@ -327,6 +377,20 @@ function attachEstimateUI() {
 }
 
 document.addEventListener('DOMContentLoaded', () => { attachEstimateUI(); recalcAll(); });
+
+// ---- РС toggle ----
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('rsToggle');
+  if (!btn) return;
+  syncRsButton();
+  btn.addEventListener('click', () => {
+    setRsEnabled(!isRsEnabled());
+    syncRsButton();
+    const wasOpen = !!document.querySelector('#estimate-body table');
+    recalcAll();
+    if (wasOpen) buildEstimate();
+  });
+});
 
 // ---- Scroll FAB (умная) ----
 function initScrollFab(){
