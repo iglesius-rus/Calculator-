@@ -48,9 +48,17 @@ body.dark .scroll-fab{ border-color: rgba(255,255,255,.2); }
 }
 .btn-outline:hover{ background: rgba(255,255,255,.06); }
 .btn-outline:active{ transform: translateY(1px); }
+.btn-outline.active{ background: rgba(255,255,255,.12); }
+
+.btn-small{
+  padding: 10px 12px;
+  font-size: 15px;
+  border-radius: 12px;
+}
 @media (prefers-color-scheme: light){
   .btn-outline{ border-color: rgba(0,0,0,.45); color:#111; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
   .btn-outline:hover{ background: rgba(0,0,0,.06); }
+  .btn-outline.active{ background: rgba(0,0,0,.10); }
 }
 
 /* Мобильная адаптация */

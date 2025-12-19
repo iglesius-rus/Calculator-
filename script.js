@@ -17,34 +17,37 @@ function _parseMoney(t){
   return parseFloat(s) || 0;
 }
 
-function readEquipmentRows(){
-  const tbody = document.querySelector('#table-equip tbody');
-  if (!tbody) return [];
-  const rows = [];
-  tbody.querySelectorAll('tr').forEach(tr => {
-    const name = tr.querySelector('.equip-name')?.value?.trim() || '';
-    const qty = _parseMoney(tr.querySelector('.equip-qty')?.value);
-    const price = _parseMoney(tr.querySelector('.equip-price')?.value);
-    const sum = Math.max(0, qty) * Math.max(0, price);
-    const cell = tr.querySelector('.equip-sum');
-    if (cell){
-      cell.textContent = (sum || 0).toLocaleString('ru-RU') + ' ₽';
-      cell.dataset.sum = String(sum || 0);
-    }
-    if (name && qty > 0 && price > 0 && sum > 0){
-      rows.push({name, qty, unit:'шт.', unitPrice:price, sum});
-    }
-  });
-  return rows;
+// ===== РС (коэффициент +11,12%) =====
+const RS_COEF = 1.1112;
+function getRsEnabled(){
+  try { return localStorage.getItem('rsEnabled') === '1'; } catch(e) { return false; }
 }
-function equipmentTotal(){
-  return readEquipmentRows().reduce((acc,r)=>acc+(r.sum||0),0);
+function setRsEnabled(v){
+  try { localStorage.setItem('rsEnabled', v ? '1' : '0'); } catch(e) {}
+  updateRsUI();
+}
+function applyRs(total){
+  const t = Math.max(0, total || 0);
+  return getRsEnabled() ? Math.round(t * RS_COEF) : Math.round(t);
+}
+function updateRsUI(){
+  const btn = document.getElementById('btn-rs');
+  const line = document.getElementById('rs-line');
+  if (btn){
+    const on = getRsEnabled();
+    btn.classList.toggle('active', on);
+    btn.setAttribute('aria-pressed', String(on));
+  }
+  if (line){
+    line.style.display = getRsEnabled() ? '' : 'none';
+  }
 }
 function rowHTML(r){
-  const _rawPrice = (r.price === 0 || r.price === '0') ? 0 : (r.price ?? '');
-  const _priceValue = (_rawPrice === '' || _rawPrice === null || _rawPrice === undefined) ? '' : String(_parseMoney(_rawPrice));
+  const editableVal = (r.price === 0 || r.price === '0' || r.price === '' || r.price === null || r.price === undefined)
+    ? ''
+    : _parseMoney(r.price);
   const priceCell = r.editablePrice
-    ? `<input type="number" class="price-input" min="0" step="1" value="${_priceValue}" style="width:90px; text-align:center;"> ₽`
+    ? `<input type="number" class="price-input" min="0" step="1" value="${editableVal}" placeholder="" style="width:90px; text-align:center;"> ₽`
     : `${format(_parseMoney(r.price))} ₽`;
   return `
     <tr>
@@ -96,10 +99,14 @@ function recalcAll(){
     }
     total += sum || 0;
   });
-  total += equipmentTotal();
   const grand = document.getElementById('grand-total');
   if (grand) grand.textContent = (total || 0).toLocaleString('ru-RU');
-  applyDiscountToTotal(total);
+  const disc = applyDiscountToTotal(total);
+  const baseFinal = (disc && typeof disc.withDisc === 'number') ? disc.withDisc : (total || 0);
+  const rsFinal = applyRs(baseFinal);
+  const rsTotal = document.getElementById('rs-total');
+  if (rsTotal) rsTotal.textContent = (rsFinal || 0).toLocaleString('ru-RU');
+  updateRsUI();
 }
 
 function getDiscountPct(){
@@ -132,11 +139,6 @@ function applyDiscountToTotal(total){
 function buildEstimate(){
   recalcAll();
   const rows = [];
-
-  // equipment first
-  const equipRows = readEquipmentRows();
-  equipRows.forEach(r => rows.push(r));
-
   document.querySelectorAll('#table-main tbody tr, #table-extra tbody tr').forEach(tr => {
     const name = tr.querySelector('td:nth-child(1)')?.textContent.trim() || '';
     const qty  = _parseMoney(tr.querySelector('input[type="number"]')?.value);
@@ -162,6 +164,8 @@ function buildEstimate(){
     const disc = applyDiscountToTotal(total);
     let discRow = '';
     let finalRow = '';
+    let rsRow = '';
+    let rsFinalRow = '';
     if (disc.pct > 0){
       discRow = `<tr>
         <td colspan="3" style="text-align:right;">Скидка ${disc.pct}%</td>
@@ -177,6 +181,21 @@ function buildEstimate(){
         <td style="white-space:nowrap; text-align:right;"><b>${total.toLocaleString('ru-RU')} ₽</b></td>
       </tr>`;
     }
+
+    // РС применяется к финальному итогу (после скидки)
+    const baseFinal = (disc && typeof disc.withDisc === 'number') ? disc.withDisc : total;
+    if (getRsEnabled()){
+      const rsFinal = applyRs(baseFinal);
+      const rsAdd = Math.max(0, rsFinal - Math.round(baseFinal));
+      rsRow = `<tr>
+        <td colspan="3" style="text-align:right;">РС (+11,12%)</td>
+        <td style="white-space:nowrap; text-align:right;">+${rsAdd.toLocaleString('ru-RU')} ₽</td>
+      </tr>`;
+      rsFinalRow = `<tr>
+        <td colspan="3" style="text-align:right;"><b>Итого (РС)</b></td>
+        <td style="white-space:nowrap; text-align:right;"><b>${rsFinal.toLocaleString('ru-RU')} ₽</b></td>
+      </tr>`;
+    }
     
     wrap.innerHTML = `
       <div class="kicker" style="margin-bottom:8px;">Автосформированный расчёт</div>
@@ -187,6 +206,8 @@ function buildEstimate(){
             
             ${discRow}
             ${finalRow}
+            ${rsRow}
+            ${rsFinalRow}
           </tbody>
         </table>
       </div>`;
@@ -214,74 +235,6 @@ function estimateToPlainText(){
   return (rows.join('\n') + (totalLine ? `\nИтого: ${totalLine}` : '') + (address ? `\nАдрес: ${address}` : '')).trim();
 }
 
-
-function numberToWordsRu(n){
-  // integer rubles only
-  n = Math.floor(Math.max(0, _parseMoney(n)));
-  const ones = [
-    ['ноль','один','два','три','четыре','пять','шесть','семь','восемь','девять'],
-    ['ноль','одна','две','три','четыре','пять','шесть','семь','восемь','девять']
-  ];
-  const tens = ['','десять','двадцать','тридцать','сорок','пятьдесят','шестьдесят','семьдесят','восемьдесят','девяносто'];
-  const teens = ['десять','одиннадцать','двенадцать','тринадцать','четырнадцать','пятнадцать','шестнадцать','семнадцать','восемнадцать','девятнадцать'];
-  const hundreds = ['','сто','двести','триста','четыреста','пятьсот','шестьсот','семьсот','восемьсот','девятьсот'];
-
-  function morph(num, f1, f2, f5){
-    const n10 = num % 10;
-    const n100 = num % 100;
-    if (n100 >= 11 && n100 <= 19) return f5;
-    if (n10 === 1) return f1;
-    if (n10 >= 2 && n10 <= 4) return f2;
-    return f5;
-  }
-
-  function triadToWords(num, gender){
-    const h = Math.floor(num/100);
-    const t = Math.floor((num%100)/10);
-    const o = num%10;
-    const out = [];
-    if (h) out.push(hundreds[h]);
-    if (t === 1){
-      out.push(teens[o]);
-    } else {
-      if (t) out.push(tens[t]);
-      if (o) out.push(ones[gender][o]);
-    }
-    return out.join(' ');
-  }
-
-  if (n === 0) return 'ноль рублей';
-
-  const parts = [];
-  const rub = n % 1000;
-  let rest = Math.floor(n/1000);
-
-  const th = rest % 1000;
-  rest = Math.floor(rest/1000);
-
-  const mil = rest % 1000;
-  rest = Math.floor(rest/1000);
-
-  const bil = rest % 1000;
-
-  if (bil){
-    parts.push(triadToWords(bil,0));
-    parts.push(morph(bil,'миллиард','миллиарда','миллиардов'));
-  }
-  if (mil){
-    parts.push(triadToWords(mil,0));
-    parts.push(morph(mil,'миллион','миллиона','миллионов'));
-  }
-  if (th){
-    parts.push(triadToWords(th,1));
-    parts.push(morph(th,'тысяча','тысячи','тысяч'));
-  }
-  if (rub){
-    parts.push(triadToWords(rub,0));
-  }
-  parts.push(morph(n,'рубль','рубля','рублей'));
-  return parts.join(' ').replace(/\s+/g,' ').trim();
-}
 // Новая функция для создания PDF
 function generatePDF() {
   if (!document.querySelector('#estimate-body table')) buildEstimate();
@@ -299,13 +252,6 @@ function generatePDF() {
   // Создаем HTML для PDF
   const title = 'Смета' + (address ? ' — ' + address : '');
   const date = new Date().toLocaleString('ru-RU');
-  // total for words (includes equipment + discount)
-  recalcAll();
-  const totalNow = _parseMoney(document.getElementById('grand-total')?.textContent);
-  const pctNow = getDiscountPct();
-  const discountNow = Math.round(totalNow * pctNow) / 100;
-  const finalNow = Math.max(0, totalNow - discountNow);
-  const wordsLine = numberToWordsRu(finalNow);
   
   const htmlContent = `
     <!DOCTYPE html>
@@ -370,7 +316,6 @@ function generatePDF() {
         ${address ? `<div><strong>Адрес объекта:</strong> ${address}</div>` : ''}
       </div>
       ${wrap.innerHTML}
-      <div style="margin-top:14px; font-size:14px; color:#000;">${wordsLine}</div>
     </body>
     </html>
   `;
@@ -428,7 +373,19 @@ function attachEstimateUI() {
     btnPdf.addEventListener('click', generatePDF);
   }
 
-  document.querySelectorAll('input[type="number"], .price-input, .equip-qty, .equip-price, .equip-name').forEach(inp => {
+  const btnRs = document.getElementById('btn-rs');
+  if (btnRs){
+    btnRs.addEventListener('click', () => {
+      const on = getRsEnabled();
+      setRsEnabled(!on);
+      // пересчитать и обновить смету если она открыта
+      const wasOpen = !!document.querySelector('#estimate-body table');
+      recalcAll();
+      if (wasOpen) buildEstimate();
+    });
+  }
+
+  document.querySelectorAll('input[type="number"], .price-input').forEach(inp => {
     inp.addEventListener('input', recalcAll);
     inp.addEventListener('change', recalcAll);
   });
@@ -475,16 +432,6 @@ document.addEventListener('input', function(e){
   }
 });
 
-// equipment inputs listener (keep estimate in sync)
-document.addEventListener('input', function(e){
-  if (e.target && (e.target.classList?.contains('equip-qty') || e.target.classList?.contains('equip-price') || e.target.classList?.contains('equip-name'))){
-    const wasOpen = !!document.querySelector('#estimate-body table');
-    recalcAll();
-    if (wasOpen) buildEstimate();
-  }
-});
-
-
 function setTheme(mode){
   const body = document.body;
   if(mode==='dark'){ body.classList.add('dark'); }
@@ -516,9 +463,9 @@ function setTheme(mode){
 
 document.addEventListener('DOMContentLoaded', () => {
   const MAIN = [
-    { name:'Монтаж настенного кондиционера 07-09 BTU', unit:'компл.', price:12000 },
-    { name:'Монтаж настенного кондиционера 12 BTU', unit:'компл.', price:14000 },
-    { name:'Монтаж настенного кондиционера 18 BTU', unit:'компл.', price:16000 }
+    { name:'Монтаж настенного кондиционера 07-09 BTU', unit:'компл.', price:10000 },
+    { name:'Монтаж настенного кондиционера 12 BTU', unit:'компл.', price:12000 },
+    { name:'Монтаж настенного кондиционера 18 BTU', unit:'компл.', price:14000 }
   ];
 
   let EXTRA = [
@@ -533,7 +480,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { name:'Каждый дополнительный выезд', unit:'выезд', price:1000 },
     { name:'Короб ДКС', unit:'п.м.', price:1200 },
     { name:'Монтаж дополнительного дренажа без короба', unit:'п.м.', price:150 },
-    { name:'Монтаж корзины', unit:'шт.', price:'', editablePrice:true },
+    { name:'Монтаж корзины', unit:'шт.', price:0, editablePrice:true },
     { name:'Монтаж наружного блока на вентилируемый фасад', unit:'услуга', price:3500 },
     { name:'Пайка фреоновых труб (за каждую)', unit:'пайка', price:500 },
     { name:'Потолок «Армстронг» (разборка/сборка)', unit:'шт.', price:200 },
@@ -552,13 +499,6 @@ document.addEventListener('DOMContentLoaded', () => {
     { name:'Элементы короба ДКС', unit:'шт.', price:350 }
   ];
   EXTRA = EXTRA.sort((a,b) => a.name.localeCompare(b.name, 'ru'));
-
-  // ensure DKS order
-  const iBox = EXTRA.findIndex(x => x.name === 'Короб ДКС');
-  const iEl  = EXTRA.findIndex(x => x.name === 'Элементы короба ДКС');
-  if (iBox !== -1 && iEl !== -1 && iBox > iEl){
-    const tmp = EXTRA[iBox]; EXTRA[iBox] = EXTRA[iEl]; EXTRA[iEl] = tmp;
-  }
 
   buildMainWithExtras(MAIN);
   buildTable('#table-extra', EXTRA);
