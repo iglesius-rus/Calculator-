@@ -65,7 +65,38 @@
     </div>
 
 
-    <div class="est-actions" style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap;">
+    
+    <div class="section-title" id="equip-section" style="margin-top:18px;">Оборудование</div>
+    <div class="kicker" style="margin-top:6px; opacity:.85;">Заполните при необходимости (в смете будет первым).</div>
+    <div style="overflow:auto;">
+      <table class="calc-table" id="table-equip">
+        <thead>
+          <tr><th>Модель / позиция</th><th>Кол-во</th><th>Цена ед.</th><th>Сумма</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-label="Модель / позиция"><input type="text" class="equip-name" placeholder="Например: Ballu Eco Smart 09" style="width:100%;"/></td>
+            <td data-label="Кол-во"><input type="number" class="equip-qty" inputmode="numeric" pattern="[0-9]*" min="0" step="1" value=""></td>
+            <td data-label="Цена ед."><input type="number" class="equip-price" min="0" step="1" value="" style="width:110px; text-align:center;"> ₽</td>
+            <td class="equip-sum" data-sum="0" data-label="Сумма">0 ₽</td>
+          </tr>
+          <tr>
+            <td data-label="Модель / позиция"><input type="text" class="equip-name" placeholder="Например: Кронштейны усиленные" style="width:100%;"/></td>
+            <td data-label="Кол-во"><input type="number" class="equip-qty" inputmode="numeric" pattern="[0-9]*" min="0" step="1" value=""></td>
+            <td data-label="Цена ед."><input type="number" class="equip-price" min="0" step="1" value="" style="width:110px; text-align:center;"> ₽</td>
+            <td class="equip-sum" data-sum="0" data-label="Сумма">0 ₽</td>
+          </tr>
+          <tr>
+            <td data-label="Модель / позиция"><input type="text" class="equip-name" placeholder="Ещё позиция" style="width:100%;"/></td>
+            <td data-label="Кол-во"><input type="number" class="equip-qty" inputmode="numeric" pattern="[0-9]*" min="0" step="1" value=""></td>
+            <td data-label="Цена ед."><input type="number" class="equip-price" min="0" step="1" value="" style="width:110px; text-align:center;"> ₽</td>
+            <td class="equip-sum" data-sum="0" data-label="Сумма">0 ₽</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+<div class="est-actions" style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap;">
       <button class="btn-outline" id="btn-copy">Скопировать</button>
       <button class="btn-outline" id="btn-pdf">Скачать PDF</button>
     </div>
