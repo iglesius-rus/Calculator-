@@ -6,7 +6,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Калькулятор стоимости работ</title>
-<link rel="stylesheet" href="style.css?v1512_02"/>
+<link rel="stylesheet" href="style.css?v1912_01"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
@@ -29,7 +29,6 @@
           <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" fill="currentColor"/>
         </svg>
       </button>
-      <button id="rsToggle" class="icon-btn rs-btn" aria-label="РС (+11.12%)" title="РС (+11.12%)">РС</button>
           <button id="installBtn" class="icon-btn hidden" aria-label="Установить приложение" title="Установить">⬇️</button>
     </div>
   </header>
@@ -76,12 +75,40 @@
       <div id="estimate-body">Пока ничего не выбрано.</div>
       
     </div>
+
+    <div class="section-title">Кондиционеры (оборудование)</div>
+    <table class="calc-table" id="table-equip">
+      <thead>
+        <tr><th>Модель кондиционера</th><th>Кол-во</th><th>Стоимость</th><th>Сумма</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td data-label="Модель"><input class="equip-model" type="text" placeholder="Напр. Ballu Eco Smart 09" style="width:100%;max-width:420px;"/></td>
+          <td data-label="Кол-во"><input class="equip-qty" type="number" inputmode="numeric" pattern="[0-9]*" min="0" step="1" value=""></td>
+          <td data-label="Стоимость"><input class="equip-cost" type="number" inputmode="numeric" min="0" step="1" value="" style="width:140px; text-align:center;"> ₽</td>
+          <td class="sum" data-sum="0" data-label="Сумма">0 ₽</td>
+        </tr>
+        <tr>
+          <td data-label="Модель"><input class="equip-model" type="text" placeholder=""/></td>
+          <td data-label="Кол-во"><input class="equip-qty" type="number" inputmode="numeric" pattern="[0-9]*" min="0" step="1" value=""></td>
+          <td data-label="Стоимость"><input class="equip-cost" type="number" inputmode="numeric" min="0" step="1" value="" style="width:140px; text-align:center;"> ₽</td>
+          <td class="sum" data-sum="0" data-label="Сумма">0 ₽</td>
+        </tr>
+        <tr>
+          <td data-label="Модель"><input class="equip-model" type="text" placeholder=""/></td>
+          <td data-label="Кол-во"><input class="equip-qty" type="number" inputmode="numeric" pattern="[0-9]*" min="0" step="1" value=""></td>
+          <td data-label="Стоимость"><input class="equip-cost" type="number" inputmode="numeric" min="0" step="1" value="" style="width:140px; text-align:center;"> ₽</td>
+          <td class="sum" data-sum="0" data-label="Сумма">0 ₽</td>
+        </tr>
+      </tbody>
+    </table>
+
   </div>
 </main>
 
 <div id="scrollFab" class="scroll-fab" role="button" aria-label="Прокрутить страницу" title="Вверх">↑</div>
-<footer class="site-footer">Версия: 1512_02 · © <a href="mailto:iglesius21@gmail.com" class="vano-link">Суперкондиционерщик Вано 2025</a>  <br/></footer>
+<footer class="site-footer">Версия: 1912_01 · © <a href="mailto:iglesius21@gmail.com" class="vano-link">Суперкондиционерщик Вано 2025</a>  <br/></footer>
 
-<script src="script.js?v1512_02"></script>
+<script src="script.js?v1912_01"></script>
 </body>
 </html>
