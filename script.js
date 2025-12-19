@@ -16,6 +16,70 @@ function _parseMoney(t){
   const s = String(t).replace(/[\s\u00A0]/g,'').replace(/руб\.?|₽/ig,'').replace(/,/,'.');
   return parseFloat(s) || 0;
 }
+
+function _morph(n, one, two, five){
+  const n10 = n % 10, n100 = n % 100;
+  if (n100 >= 11 && n100 <= 19) return five;
+  if (n10 === 1) return one;
+  if (n10 >= 2 && n10 <= 4) return two;
+  return five;
+}
+
+function _triadToWords(num, female){
+  const onesM = ['','один','два','три','четыре','пять','шесть','семь','восемь','девять'];
+  const onesF = ['','одна','две','три','четыре','пять','шесть','семь','восемь','девять'];
+  const teens = ['десять','одиннадцать','двенадцать','тринадцать','четырнадцать','пятнадцать','шестнадцать','семнадцать','восемнадцать','девятнадцать'];
+  const tens  = ['','', 'двадцать','тридцать','сорок','пятьдесят','шестьдесят','семьдесят','восемьдесят','девяносто'];
+  const hund  = ['','сто','двести','триста','четыреста','пятьсот','шестьсот','семьсот','восемьсот','девятьсот'];
+  let n = Math.floor(num) % 1000;
+  if (n === 0) return '';
+  const h = Math.floor(n/100);
+  const t = Math.floor((n%100)/10);
+  const o = n%10;
+  const words = [];
+  if (h) words.push(hund[h]);
+  if (t === 1) {
+    words.push(teens[o]);
+  } else {
+    if (t) words.push(tens[t]);
+    if (o) words.push((female ? onesF : onesM)[o]);
+  }
+  return words.join(' ');
+}
+
+function moneyToWordsRu(amount){
+  const v = Math.max(0, Number(amount) || 0);
+  const rub = Math.floor(v + 1e-9);
+  const kop = Math.round((v - rub) * 100);
+  const triads = [
+    {one:'', two:'', five:'', female:false},                 // units
+    {one:'тысяча', two:'тысячи', five:'тысяч', female:true},
+    {one:'миллион', two:'миллиона', five:'миллионов', female:false},
+    {one:'миллиард', two:'миллиарда', five:'миллиардов', female:false}
+  ];
+
+  if (rub === 0) {
+    return `ноль рублей ${String(kop).padStart(2,'0')} копеек`;
+  }
+
+  const parts = [];
+  let n = rub;
+  let i = 0;
+  while (n > 0 && i < triads.length){
+    const tri = n % 1000;
+    if (tri){
+      const words = _triadToWords(tri, triads[i].female);
+      const title = i === 0 ? '' : _morph(tri, triads[i].one, triads[i].two, triads[i].five);
+      parts.unshift([words, title].filter(Boolean).join(' ').trim());
+    }
+    n = Math.floor(n / 1000);
+    i++;
+  }
+
+  const rubWord = _morph(rub, 'рубль', 'рубля', 'рублей');
+  const kopWord = _morph(kop, 'копейка', 'копейки', 'копеек');
+  return `${parts.join(' ').trim()} ${rubWord} ${String(kop).padStart(2,'0')} ${kopWord}`.replace(/\s+/g,' ').trim();
+}
 function rowHTML(r){
   const priceCell = r.editablePrice
     ? `<input type="number" class="price-input" min="0" step="1" value="${_parseMoney(r.price)}" style="width:90px; text-align:center;"> ₽`
@@ -71,20 +135,22 @@ function recalcAll(){
     total += sum || 0;
   });
 
-  // Equipment lines (models) - sum is entered вручную (итоговая стоимость по позиции)
+  // Equipment lines (models) - стоимость указывается за 1 шт.
   document.querySelectorAll('#table-equip tbody tr').forEach(tr => {
-    const qty = _parseMoney(tr.querySelector('.equip-qty')?.value);
-    const cost = _parseMoney(tr.querySelector('.equip-cost')?.value);
-    const sum = Math.max(0, cost); // cost is already total for this позиция
+    const qtyRaw = _parseMoney(tr.querySelector('.equip-qty')?.value);
+    const unitCost = _parseMoney(tr.querySelector('.equip-cost')?.value);
+    const qty = (qtyRaw > 0) ? qtyRaw : (unitCost > 0 ? 1 : 0);
+    const sum = Math.max(0, qty) * Math.max(0, unitCost);
+
     const cell = tr.querySelector('.sum');
     if (cell){
       cell.textContent = (sum || 0).toLocaleString('ru-RU') + ' ₽';
       cell.dataset.sum = String(sum || 0);
     }
-    tr.dataset.qty = String(Math.max(0, qty) || 0);
-    tr.dataset.cost = String(sum || 0);
+
     total += sum || 0;
   });
+
   const grand = document.getElementById('grand-total');
   if (grand) grand.textContent = (total || 0).toLocaleString('ru-RU');
   applyDiscountToTotal(total);
@@ -120,6 +186,23 @@ function applyDiscountToTotal(total){
 function buildEstimate(){
   recalcAll();
   const rows = [];
+
+  // Кондиционеры (оборудование) — в смете идут первыми
+  document.querySelectorAll('#table-equip tbody tr').forEach(tr => {
+    const model = tr.querySelector('.equip-model')?.value?.trim() || '';
+    const qtyRaw  = _parseMoney(tr.querySelector('.equip-qty')?.value);
+    const unitCost = _parseMoney(tr.querySelector('.equip-cost')?.value);
+
+    const qty = (qtyRaw > 0) ? qtyRaw : (unitCost > 0 ? 1 : 0);
+    const sum = Math.max(0, qty) * Math.max(0, unitCost);
+
+    if (sum > 0) {
+      const name = model ? `Кондиционер: ${model}` : 'Кондиционер (модель не указана)';
+      rows.push({name, qty, unit:'шт.', unitPrice: unitCost, sum});
+    }
+  });
+
+  // Работы
   document.querySelectorAll('#table-main tbody tr, #table-extra tbody tr').forEach(tr => {
     const name = tr.querySelector('td:nth-child(1)')?.textContent.trim() || '';
     const qty  = _parseMoney(tr.querySelector('input[type="number"]')?.value);
@@ -128,37 +211,32 @@ function buildEstimate(){
     const sum  = _parseMoney(tr.querySelector('.sum')?.textContent);
     if (qty > 0 && sum > 0) rows.push({name, qty, unit, unitPrice, sum});
   });
-  
-  // equipment rows
-  document.querySelectorAll('#table-equip tbody tr').forEach(tr => {
-    const model = tr.querySelector('.equip-model')?.value?.trim() || '';
-    const qty  = _parseMoney(tr.querySelector('.equip-qty')?.value);
-    const cost = _parseMoney(tr.querySelector('.equip-cost')?.value);
-    if (cost > 0) {
-      const safeName = model ? `Кондиционер: ${model}` : 'Кондиционер (модель не указана)';
-      const safeQty = qty > 0 ? qty : 1;
-      const unitPrice = qty > 0 ? Math.round((cost / qty) * 100) / 100 : cost;
-      rows.push({name: safeName, qty: safeQty, unit: 'шт.', unitPrice, sum: cost});
-    }
-  });
 
   const wrap = document.getElementById('estimate-body');
   if (!wrap) return;
+
   if (!rows.length){
     wrap.innerHTML = '<p class="kicker">Пока ничего не выбрано. Укажите количество. Смета формируется автоматически при копировании или печати в PDF.</p>';
   } else {
     let total = 0;
-    const items = rows.map(r => { total += r.sum; return (
-      `<tr>
-        <td>${r.name}</td>
-        <td style="text-align:center;">${r.qty} ${r.unit}</td>
-        <td style="white-space:nowrap;">${r.unitPrice.toLocaleString('ru-RU')} ₽</td>
-        <td style="white-space:nowrap; text-align:right;"><b>${r.sum.toLocaleString('ru-RU')} ₽</b></td>
-      </tr>`);
+    const items = rows.map(r => {
+      total += r.sum;
+      return (
+        `<tr>
+          <td>${r.name}</td>
+          <td style="text-align:center;">${r.qty} ${r.unit}</td>
+          <td style="white-space:nowrap;">${r.unitPrice.toLocaleString('ru-RU')} ₽</td>
+          <td style="white-space:nowrap; text-align:right;"><b>${r.sum.toLocaleString('ru-RU')} ₽</b></td>
+        </tr>`
+      );
     }).join('');
+
     const disc = applyDiscountToTotal(total);
+    const finalTotal = (disc.pct > 0) ? (disc.withDisc || total) : total;
+
     let discRow = '';
     let finalRow = '';
+
     if (disc.pct > 0){
       discRow = `<tr>
         <td colspan="3" style="text-align:right;">Скидка ${disc.pct}%</td>
@@ -166,7 +244,7 @@ function buildEstimate(){
       </tr>`;
       finalRow = `<tr>
         <td colspan="3" style="text-align:right;"><b>Итого со скидкой</b></td>
-        <td style="white-space:nowrap; text-align:right;"><b>${(disc.withDisc || total).toLocaleString('ru-RU')} ₽</b></td>
+        <td style="white-space:nowrap; text-align:right;"><b>${finalTotal.toLocaleString('ru-RU')} ₽</b></td>
       </tr>`;
     } else {
       finalRow = `<tr>
@@ -174,24 +252,30 @@ function buildEstimate(){
         <td style="white-space:nowrap; text-align:right;"><b>${total.toLocaleString('ru-RU')} ₽</b></td>
       </tr>`;
     }
-    
+
+    const words = moneyToWordsRu(finalTotal);
+
     wrap.innerHTML = `
       <div class="kicker" style="margin-bottom:8px;">Автосформированный расчёт</div>
       <div style="overflow:auto;">
         <table class="calc-table">
           <thead><tr><th>Позиция</th><th>Кол-во</th><th>Цена ед.</th><th>Сумма</th></tr></thead>
-          <tbody>${items}
-            
+          <tbody>
+            ${items}
             ${discRow}
             ${finalRow}
           </tbody>
         </table>
-      </div>`;
+      </div>
+      <div class="kicker" style="margin-top:10px;">Сумма прописью: <b>${words}</b></div>
+    `;
   }
+
   document.getElementById('estimate')?.classList.remove('hidden');
 }
 
-function estimateToPlainText(){
+function estimateToPlainText
+(){
   const wrap = document.getElementById('estimate-body');
   if (!wrap) return '';
   const table = wrap.querySelector('table');
@@ -213,7 +297,7 @@ function estimateToPlainText(){
 
 // Новая функция для создания PDF
 function generatePDF() {
-  if (!document.querySelector('#estimate-body table')) buildEstimate();
+  buildEstimate();
   
   const wrap = document.getElementById('estimate-body');
   const address = document.getElementById('estimate-address')?.value?.trim() || '';
@@ -319,7 +403,7 @@ function attachEstimateUI() {
   
   if (btnCopy) {
     btnCopy.addEventListener('click', async () => {
-      if (!document.querySelector('#estimate-body table')) buildEstimate();
+      buildEstimate();
       const text = estimateToPlainText();
       if (!text) {
         btnCopy.textContent = 'Нет данных';
@@ -350,8 +434,13 @@ function attachEstimateUI() {
   }
 
   document.querySelectorAll('input[type="number"], .price-input, #table-equip input').forEach(inp => {
-    inp.addEventListener('input', recalcAll);
-    inp.addEventListener('change', recalcAll);
+    const onChange = () => {
+      const wasOpen = !!document.querySelector('#estimate-body table');
+      recalcAll();
+      if (wasOpen) buildEstimate();
+    };
+    inp.addEventListener('input', onChange);
+    inp.addEventListener('change', onChange);
   });
 }
 
@@ -463,6 +552,18 @@ document.addEventListener('DOMContentLoaded', () => {
     { name:'Элементы короба ДКС', unit:'шт.', price:350 }
   ];
   EXTRA = EXTRA.sort((a,b) => a.name.localeCompare(b.name, 'ru'));
+
+  // Держим ДКС рядом: «Короб ДКС» над «Элементы короба ДКС»
+  const _dksBoxIdx = EXTRA.findIndex(x => x.name === 'Короб ДКС');
+  const _dksElIdx  = EXTRA.findIndex(x => x.name === 'Элементы короба ДКС');
+  if (_dksBoxIdx !== -1 && _dksElIdx !== -1) {
+    const box = EXTRA[_dksBoxIdx];
+    const els = EXTRA[_dksElIdx];
+    EXTRA = EXTRA.filter((_,i) => i !== _dksBoxIdx && i !== _dksElIdx);
+    const at = Math.min(_dksBoxIdx, EXTRA.length);
+    EXTRA.splice(at, 0, box, els);
+  }
+
 
   buildMainWithExtras(MAIN);
   buildTable('#table-extra', EXTRA);
