@@ -17,72 +17,78 @@ function _parseMoney(t){
   return parseFloat(s) || 0;
 }
 
-function _morph(n, one, two, five){
-  const n10 = n % 10, n100 = n % 100;
-  if (n100 >= 11 && n100 <= 19) return five;
-  if (n10 === 1) return one;
-  if (n10 >= 2 && n10 <= 4) return two;
-  return five;
+// ---- Сумма прописью (для PDF) ----
+function _pluralRu(n, one, few, many){
+  const nn = Math.abs(n) % 100;
+  const n1 = nn % 10;
+  if (nn > 10 && nn < 20) return many;
+  if (n1 > 1 && n1 < 5) return few;
+  if (n1 === 1) return one;
+  return many;
 }
 
-function _triadToWords(num, female){
+function _triadToWords(num, gender){
   const onesM = ['','один','два','три','четыре','пять','шесть','семь','восемь','девять'];
   const onesF = ['','одна','две','три','четыре','пять','шесть','семь','восемь','девять'];
+  const ones = (gender === 'f') ? onesF : onesM;
   const teens = ['десять','одиннадцать','двенадцать','тринадцать','четырнадцать','пятнадцать','шестнадцать','семнадцать','восемнадцать','девятнадцать'];
-  const tens  = ['','', 'двадцать','тридцать','сорок','пятьдесят','шестьдесят','семьдесят','восемьдесят','девяносто'];
-  const hund  = ['','сто','двести','триста','четыреста','пятьсот','шестьсот','семьсот','восемьсот','девятьсот'];
-  let n = Math.floor(num) % 1000;
-  if (n === 0) return '';
-  const h = Math.floor(n/100);
-  const t = Math.floor((n%100)/10);
-  const o = n%10;
-  const words = [];
-  if (h) words.push(hund[h]);
+  const tens = ['','десять','двадцать','тридцать','сорок','пятьдесят','шестьдесят','семьдесят','восемьдесят','девяносто'];
+  const hund = ['','сто','двести','триста','четыреста','пятьсот','шестьсот','семьсот','восемьсот','девятьсот'];
+
+  const h = Math.floor(num / 100);
+  const t = Math.floor((num % 100) / 10);
+  const o = num % 10;
+  const parts = [];
+  if (h) parts.push(hund[h]);
   if (t === 1) {
-    words.push(teens[o]);
+    parts.push(teens[o]);
   } else {
-    if (t) words.push(tens[t]);
-    if (o) words.push((female ? onesF : onesM)[o]);
+    if (t) parts.push(tens[t]);
+    if (o) parts.push(ones[o]);
   }
-  return words.join(' ');
+  return parts.join(' ');
 }
 
 function moneyToWordsRu(amount){
-  const v = Math.max(0, Number(amount) || 0);
-  const rub = Math.floor(v + 1e-9);
-  const kop = Math.round((v - rub) * 100);
-  const triads = [
-    {one:'', two:'', five:'', female:false},                 // units
-    {one:'тысяча', two:'тысячи', five:'тысяч', female:true},
-    {one:'миллион', two:'миллиона', five:'миллионов', female:false},
-    {one:'миллиард', two:'миллиарда', five:'миллиардов', female:false}
+  const rub = Math.floor(Math.max(0, amount) + 0.000001);
+  const kop = Math.round((Math.max(0, amount) - rub) * 100);
+  if (rub === 0) {
+    return `ноль ${_pluralRu(0,'рубль','рубля','рублей')} ${(String(kop).padStart(2,'0'))} ${_pluralRu(kop,'копейка','копейки','копеек')}`;
+  }
+
+  const groups = [
+    {v: 1_000_000_000, gender:'m', forms:['миллиард','миллиарда','миллиардов']},
+    {v: 1_000_000,     gender:'m', forms:['миллион','миллиона','миллионов']},
+    {v: 1_000,         gender:'f', forms:['тысяча','тысячи','тысяч']}
   ];
 
-  if (rub === 0) {
-    return `ноль рублей ${String(kop).padStart(2,'0')} копеек`;
-  }
-
-  const parts = [];
   let n = rub;
-  let i = 0;
-  while (n > 0 && i < triads.length){
-    const tri = n % 1000;
-    if (tri){
-      const words = _triadToWords(tri, triads[i].female);
-      const title = i === 0 ? '' : _morph(tri, triads[i].one, triads[i].two, triads[i].five);
-      parts.unshift([words, title].filter(Boolean).join(' ').trim());
+  const words = [];
+  for (const g of groups){
+    const cnt = Math.floor(n / g.v);
+    if (cnt > 0){
+      const triad = _triadToWords(cnt, g.gender);
+      if (triad) words.push(triad);
+      words.push(_pluralRu(cnt, g.forms[0], g.forms[1], g.forms[2]));
+      n = n % g.v;
     }
-    n = Math.floor(n / 1000);
-    i++;
+  }
+  const last = n % 1000;
+  if (last > 0){
+    const triad = _triadToWords(last, 'm');
+    if (triad) words.push(triad);
   }
 
-  const rubWord = _morph(rub, 'рубль', 'рубля', 'рублей');
-  const kopWord = _morph(kop, 'копейка', 'копейки', 'копеек');
-  return `${parts.join(' ').trim()} ${rubWord} ${String(kop).padStart(2,'0')} ${kopWord}`.replace(/\s+/g,' ').trim();
+  const rubWord = _pluralRu(rub,'рубль','рубля','рублей');
+  const kopWord = _pluralRu(kop,'копейка','копейки','копеек');
+  return `${words.join(' ').trim()} ${rubWord} ${(String(kop).padStart(2,'0'))} ${kopWord}`.trim();
 }
 function rowHTML(r){
-  const priceCell = r.editablePrice
-    ? `<input type="number" class="price-input" min="0" step="1" value="${_parseMoney(r.price)}" style="width:90px; text-align:center;"> ₽`
+  const hasEditablePrice = !!r.editablePrice;
+  const rawPrice = (r.price === null || r.price === undefined) ? '' : String(r.price).trim();
+  const editableValue = rawPrice === '' ? '' : String(_parseMoney(rawPrice));
+  const priceCell = hasEditablePrice
+    ? `<input type="number" class="price-input" min="0" step="1" value="${editableValue}" placeholder="" style="width:90px; text-align:center;"> ₽`
     : `${format(_parseMoney(r.price))} ₽`;
   return `
     <tr>
@@ -134,23 +140,6 @@ function recalcAll(){
     }
     total += sum || 0;
   });
-
-  // Equipment lines (models) - стоимость указывается за 1 шт.
-  document.querySelectorAll('#table-equip tbody tr').forEach(tr => {
-    const qtyRaw = _parseMoney(tr.querySelector('.equip-qty')?.value);
-    const unitCost = _parseMoney(tr.querySelector('.equip-cost')?.value);
-    const qty = (qtyRaw > 0) ? qtyRaw : (unitCost > 0 ? 1 : 0);
-    const sum = Math.max(0, qty) * Math.max(0, unitCost);
-
-    const cell = tr.querySelector('.sum');
-    if (cell){
-      cell.textContent = (sum || 0).toLocaleString('ru-RU') + ' ₽';
-      cell.dataset.sum = String(sum || 0);
-    }
-
-    total += sum || 0;
-  });
-
   const grand = document.getElementById('grand-total');
   if (grand) grand.textContent = (total || 0).toLocaleString('ru-RU');
   applyDiscountToTotal(total);
@@ -186,23 +175,6 @@ function applyDiscountToTotal(total){
 function buildEstimate(){
   recalcAll();
   const rows = [];
-
-  // Кондиционеры (оборудование) — в смете идут первыми
-  document.querySelectorAll('#table-equip tbody tr').forEach(tr => {
-    const model = tr.querySelector('.equip-model')?.value?.trim() || '';
-    const qtyRaw  = _parseMoney(tr.querySelector('.equip-qty')?.value);
-    const unitCost = _parseMoney(tr.querySelector('.equip-cost')?.value);
-
-    const qty = (qtyRaw > 0) ? qtyRaw : (unitCost > 0 ? 1 : 0);
-    const sum = Math.max(0, qty) * Math.max(0, unitCost);
-
-    if (sum > 0) {
-      const name = model ? `Кондиционер: ${model}` : 'Кондиционер (модель не указана)';
-      rows.push({name, qty, unit:'шт.', unitPrice: unitCost, sum});
-    }
-  });
-
-  // Работы
   document.querySelectorAll('#table-main tbody tr, #table-extra tbody tr').forEach(tr => {
     const name = tr.querySelector('td:nth-child(1)')?.textContent.trim() || '';
     const qty  = _parseMoney(tr.querySelector('input[type="number"]')?.value);
@@ -211,32 +183,23 @@ function buildEstimate(){
     const sum  = _parseMoney(tr.querySelector('.sum')?.textContent);
     if (qty > 0 && sum > 0) rows.push({name, qty, unit, unitPrice, sum});
   });
-
   const wrap = document.getElementById('estimate-body');
   if (!wrap) return;
-
   if (!rows.length){
     wrap.innerHTML = '<p class="kicker">Пока ничего не выбрано. Укажите количество. Смета формируется автоматически при копировании или печати в PDF.</p>';
   } else {
     let total = 0;
-    const items = rows.map(r => {
-      total += r.sum;
-      return (
-        `<tr>
-          <td>${r.name}</td>
-          <td style="text-align:center;">${r.qty} ${r.unit}</td>
-          <td style="white-space:nowrap;">${r.unitPrice.toLocaleString('ru-RU')} ₽</td>
-          <td style="white-space:nowrap; text-align:right;"><b>${r.sum.toLocaleString('ru-RU')} ₽</b></td>
-        </tr>`
-      );
+    const items = rows.map(r => { total += r.sum; return (
+      `<tr>
+        <td>${r.name}</td>
+        <td style="text-align:center;">${r.qty} ${r.unit}</td>
+        <td style="white-space:nowrap;">${r.unitPrice.toLocaleString('ru-RU')} ₽</td>
+        <td style="white-space:nowrap; text-align:right;"><b>${r.sum.toLocaleString('ru-RU')} ₽</b></td>
+      </tr>`);
     }).join('');
-
     const disc = applyDiscountToTotal(total);
-    const finalTotal = (disc.pct > 0) ? (disc.withDisc || total) : total;
-
     let discRow = '';
     let finalRow = '';
-
     if (disc.pct > 0){
       discRow = `<tr>
         <td colspan="3" style="text-align:right;">Скидка ${disc.pct}%</td>
@@ -244,7 +207,7 @@ function buildEstimate(){
       </tr>`;
       finalRow = `<tr>
         <td colspan="3" style="text-align:right;"><b>Итого со скидкой</b></td>
-        <td style="white-space:nowrap; text-align:right;"><b>${finalTotal.toLocaleString('ru-RU')} ₽</b></td>
+        <td style="white-space:nowrap; text-align:right;"><b>${(disc.withDisc || total).toLocaleString('ru-RU')} ₽</b></td>
       </tr>`;
     } else {
       finalRow = `<tr>
@@ -252,30 +215,24 @@ function buildEstimate(){
         <td style="white-space:nowrap; text-align:right;"><b>${total.toLocaleString('ru-RU')} ₽</b></td>
       </tr>`;
     }
-
-    const words = moneyToWordsRu(finalTotal);
-
+    
     wrap.innerHTML = `
       <div class="kicker" style="margin-bottom:8px;">Автосформированный расчёт</div>
       <div style="overflow:auto;">
         <table class="calc-table">
           <thead><tr><th>Позиция</th><th>Кол-во</th><th>Цена ед.</th><th>Сумма</th></tr></thead>
-          <tbody>
-            ${items}
+          <tbody>${items}
+            
             ${discRow}
             ${finalRow}
           </tbody>
         </table>
-      </div>
-      <div class="kicker" style="margin-top:10px;">Сумма прописью: <b>${words}</b></div>
-    `;
+      </div>`;
   }
-
   document.getElementById('estimate')?.classList.remove('hidden');
 }
 
-function estimateToPlainText
-(){
+function estimateToPlainText(){
   const wrap = document.getElementById('estimate-body');
   if (!wrap) return '';
   const table = wrap.querySelector('table');
@@ -297,7 +254,7 @@ function estimateToPlainText
 
 // Новая функция для создания PDF
 function generatePDF() {
-  buildEstimate();
+  if (!document.querySelector('#estimate-body table')) buildEstimate();
   
   const wrap = document.getElementById('estimate-body');
   const address = document.getElementById('estimate-address')?.value?.trim() || '';
@@ -312,6 +269,9 @@ function generatePDF() {
   // Создаем HTML для PDF
   const title = 'Смета' + (address ? ' — ' + address : '');
   const date = new Date().toLocaleString('ru-RU');
+  const finalText = wrap.querySelector('tbody tr:last-child td:last-child')?.textContent || '';
+  const finalAmount = _parseMoney(finalText);
+  const sumWords = moneyToWordsRu(finalAmount);
   
   const htmlContent = `
     <!DOCTYPE html>
@@ -376,6 +336,7 @@ function generatePDF() {
         ${address ? `<div><strong>Адрес объекта:</strong> ${address}</div>` : ''}
       </div>
       ${wrap.innerHTML}
+      <div style="margin-top:12px; font-size:14px; color:#000;"><b>${sumWords}</b></div>
     </body>
     </html>
   `;
@@ -403,7 +364,7 @@ function attachEstimateUI() {
   
   if (btnCopy) {
     btnCopy.addEventListener('click', async () => {
-      buildEstimate();
+      if (!document.querySelector('#estimate-body table')) buildEstimate();
       const text = estimateToPlainText();
       if (!text) {
         btnCopy.textContent = 'Нет данных';
@@ -433,14 +394,9 @@ function attachEstimateUI() {
     btnPdf.addEventListener('click', generatePDF);
   }
 
-  document.querySelectorAll('input[type="number"], .price-input, #table-equip input').forEach(inp => {
-    const onChange = () => {
-      const wasOpen = !!document.querySelector('#estimate-body table');
-      recalcAll();
-      if (wasOpen) buildEstimate();
-    };
-    inp.addEventListener('input', onChange);
-    inp.addEventListener('change', onChange);
+  document.querySelectorAll('input[type="number"], .price-input').forEach(inp => {
+    inp.addEventListener('input', recalcAll);
+    inp.addEventListener('change', recalcAll);
   });
 }
 
@@ -516,9 +472,9 @@ function setTheme(mode){
 
 document.addEventListener('DOMContentLoaded', () => {
   const MAIN = [
-    { name:'Монтаж настенного кондиционера 07-09 BTU', unit:'компл.', price:12000 },
-    { name:'Монтаж настенного кондиционера 12 BTU', unit:'компл.', price:14000 },
-    { name:'Монтаж настенного кондиционера 18 BTU', unit:'компл.', price:16000 }
+    { name:'Монтаж настенного кондиционера 07-09 BTU', unit:'компл.', price:10000 },
+    { name:'Монтаж настенного кондиционера 12 BTU', unit:'компл.', price:12000 },
+    { name:'Монтаж настенного кондиционера 18 BTU', unit:'компл.', price:14000 }
   ];
 
   let EXTRA = [
@@ -533,7 +489,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { name:'Каждый дополнительный выезд', unit:'выезд', price:1000 },
     { name:'Короб ДКС', unit:'п.м.', price:1200 },
     { name:'Монтаж дополнительного дренажа без короба', unit:'п.м.', price:150 },
-    { name:'Монтаж корзины', unit:'шт.', price:0, editablePrice:true },
+    { name:'Монтаж корзины', unit:'шт.', editablePrice:true },
     { name:'Монтаж наружного блока на вентилируемый фасад', unit:'услуга', price:3500 },
     { name:'Пайка фреоновых труб (за каждую)', unit:'пайка', price:500 },
     { name:'Потолок «Армстронг» (разборка/сборка)', unit:'шт.', price:200 },
@@ -552,18 +508,6 @@ document.addEventListener('DOMContentLoaded', () => {
     { name:'Элементы короба ДКС', unit:'шт.', price:350 }
   ];
   EXTRA = EXTRA.sort((a,b) => a.name.localeCompare(b.name, 'ru'));
-
-  // Держим ДКС рядом: «Короб ДКС» над «Элементы короба ДКС»
-  const _dksBoxIdx = EXTRA.findIndex(x => x.name === 'Короб ДКС');
-  const _dksElIdx  = EXTRA.findIndex(x => x.name === 'Элементы короба ДКС');
-  if (_dksBoxIdx !== -1 && _dksElIdx !== -1) {
-    const box = EXTRA[_dksBoxIdx];
-    const els = EXTRA[_dksElIdx];
-    EXTRA = EXTRA.filter((_,i) => i !== _dksBoxIdx && i !== _dksElIdx);
-    const at = Math.min(_dksBoxIdx, EXTRA.length);
-    EXTRA.splice(at, 0, box, els);
-  }
-
 
   buildMainWithExtras(MAIN);
   buildTable('#table-extra', EXTRA);
