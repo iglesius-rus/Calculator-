@@ -1,7 +1,7 @@
 /* © Вано
    iglesius21@gmail.com */
 
-const APP_VERSION = 'v1912_02';
+const APP_VERSION = 'v1912_04';
 const STATIC_CACHE = `static-${APP_VERSION}`;
 const OFFLINE_URL = 'offline.html';
 
@@ -12,8 +12,8 @@ const ASSETS = [
   'script.js',
   'offline.html',
   'manifest.webmanifest',
-  'icon-192.png',
-  'icon-512.png'
+  'icon-192.png',  'icon-512.png',
+  'logo.svg'
 ];
 
 self.addEventListener('install', event => {

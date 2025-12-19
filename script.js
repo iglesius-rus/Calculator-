@@ -664,13 +664,30 @@ document.addEventListener('DOMContentLoaded', () => {
     { name:'Элементы короба ДКС', unit:'шт.', price:350 }
   ];
 
-  // Сортировка, но "Короб ДКС" держим выше "Элементы короба ДКС"
+  // Сортировка: обычные позиции по алфавиту, а ДКС-строки держим внизу
+  // (но "Короб ДКС" всё равно выше "Элементы короба ДКС")
   EXTRA = EXTRA.sort((a, b) => {
     const an = a.name || '';
     const bn = b.name || '';
-    if (an === 'Короб ДКС' && bn === 'Элементы короба ДКС') return -1;
-    if (an === 'Элементы короба ДКС' && bn === 'Короб ДКС') return 1;
-    return an.localeCompare(bn, 'ru');
+
+    const dksRank = (n) => {
+      if (n === 'Короб ДКС') return 1;
+      if (n === 'Элементы короба ДКС') return 2;
+      return 0;
+    };
+
+    const ar = dksRank(an);
+    const br = dksRank(bn);
+
+    // Всё, что не ДКС, идёт раньше
+    if (ar === 0 && br !== 0) return -1;
+    if (ar !== 0 && br === 0) return 1;
+
+    // Оба не ДКС: обычная сортировка
+    if (ar === 0 && br === 0) return an.localeCompare(bn, 'ru');
+
+    // Оба ДКС: фиксированный порядок (Короб -> Элементы)
+    return ar - br;
   });
 
   buildMainWithExtras(MAIN);

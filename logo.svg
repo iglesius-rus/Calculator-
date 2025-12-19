@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 160" width="720" height="160" role="img" aria-label="Смета PRO">
+  <defs>
+    <linearGradient id="gText" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f4f4f4"/>
+      <stop offset="1" stop-color="#cfcfcf"/>
+    </linearGradient>
+
+    <linearGradient id="gBadge" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffb341"/>
+      <stop offset="0.55" stop-color="#ff7a00"/>
+      <stop offset="1" stop-color="#d84b00"/>
+    </linearGradient>
+
+    <linearGradient id="gBadgeInner" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+
+    <filter id="orangeGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="blur"/>
+      <feColorMatrix in="blur" type="matrix"
+        values="1 0 0 0 0
+                0 0.55 0 0 0
+                0 0 0 0 0
+                0 0 0 0.7 0" result="glow"/>
+      <feMerge>
+        <feMergeNode in="glow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Word: "Смета" -->
+  <text x="20" y="108" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Arial" font-size="92"
+        font-weight="800" font-style="italic" fill="url(#gText)" filter="url(#softShadow)">Смета</text>
+
+  <!-- Badge: "PRO" -->
+  <g transform="translate(350, 26)" filter="url(#orangeGlow)">
+    <rect x="0" y="0" width="320" height="108" rx="20" fill="url(#gBadge)"/>
+    <rect x="10" y="10" width="300" height="50" rx="14" fill="url(#gBadgeInner)"/>
+    <rect x="6" y="6" width="308" height="96" rx="18" fill="none" stroke="#ffdfb0" stroke-opacity="0.25" stroke-width="2"/>
+
+    <text x="160" y="78" text-anchor="middle"
+          font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Arial" font-size="78"
+          font-weight="900" font-style="italic" fill="#fff7e6">PRO</text>
+  </g>
+</svg>

@@ -1,7 +1,7 @@
 /* © Вано | iglesius21@gmail.com */
 {
-  "name": "Калькулятор стоимости работ",
-  "short_name": "Калькулятор",
+  "name": "Смета PRO",
+  "short_name": "Смета PRO",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",

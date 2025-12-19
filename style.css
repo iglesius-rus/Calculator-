@@ -73,6 +73,8 @@ body.dark .scroll-fab{ border-color: rgba(255,255,255,.2); }
   padding:10px 12px; background:var(--header); border-bottom:1px solid #0001; backdrop-filter:saturate(120%) blur(6px);}
 body.dark .topbar {border-color:#fff1;}
 .app-title {font-weight:700; opacity:.85;}
+.brand-logo{height:28px;width:auto;display:block;}
+ (min-width:480px){.brand-logo{height:32px;}}
 .icon-btn {display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:10px;
   border:1px solid #0002; background:transparent; color:var(--text); cursor:pointer;}
 .icon-btn.active{ background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.35); }
