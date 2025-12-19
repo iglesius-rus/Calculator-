@@ -676,6 +676,9 @@ document.addEventListener('DOMContentLoaded', () => {
   buildMainWithExtras(MAIN);
   buildTable('#table-extra', EXTRA);
   buildEquipmentTable(3);
+  // Синхронизация состояния РС при загрузке (чтобы не выглядело как "не работает")
+  setRsOn(getRsOn());
+
 
   attachEstimateUI();
   initScrollFab();
