@@ -1,7 +1,7 @@
 /* © Вано
    iglesius21@gmail.com */
 
-const APP_VERSION = 'v1912_04';
+const APP_VERSION = 'v2112_01';
 const STATIC_CACHE = `static-${APP_VERSION}`;
 const OFFLINE_URL = 'offline.html';
 
@@ -12,24 +12,20 @@ const ASSETS = [
   'script.js',
   'offline.html',
   'manifest.webmanifest',
-  'icon-192.png',  'icon-512.png',
-  'logo.svg'
+  'icon-192.png',
+  'icon-512.png'
 ];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(STATIC_CACHE).then(cache => cache.addAll(ASSETS)));
   self.skipWaiting();
 });
-
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== STATIC_CACHE).map(k => caches.delete(k)))
-    )
+    caches.keys().then(keys => Promise.all(keys.filter(k => k !== STATIC_CACHE).map(k => caches.delete(k))))
   );
   self.clients.claim();
 });
-
 self.addEventListener('fetch', event => {
   const req = event.request;
   const url = new URL(req.url);
@@ -42,14 +38,13 @@ self.addEventListener('fetch', event => {
         const cache = await caches.open(STATIC_CACHE);
         cache.put('index.html', fresh.clone());
         return fresh;
-      } catch (e) {
+      } catch(e) {
         const cache = await caches.open(STATIC_CACHE);
         return (await cache.match('index.html')) || cache.match(OFFLINE_URL);
       }
     })());
     return;
   }
-
   event.respondWith((async () => {
     const cache = await caches.open(STATIC_CACHE);
     const cached = await cache.match(req);
@@ -58,7 +53,7 @@ self.addEventListener('fetch', event => {
       const fresh = await fetch(req);
       if (fresh && fresh.ok) cache.put(req, fresh.clone());
       return fresh;
-    } catch (e) {
+    } catch(e) {
       if (req.destination === 'document') return cache.match(OFFLINE_URL);
       throw e;
     }
