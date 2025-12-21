@@ -5,8 +5,8 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Смета Demo</title>
-<link rel="stylesheet" href="style.css?v2112_01"/>
+<title>Смета PRO</title>
+<link rel="stylesheet" href="style.css?v1912_04"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
@@ -18,8 +18,12 @@
 <body class="dark">
 <main>
   <header class="topbar">
-    <div class="topbar-left"><span class="app-title">Смета Demo</span></div>
-    <div class="topbar-right">
+    <div class="topbar-left">
+      <img src="logo.svg" class="brand-logo" alt="Смета PRO"/>
+    </div>
+    <div class="topbar-right" style="display:flex; gap:8px; align-items:center;">
+      <button id="rsToggle" class="icon-btn" aria-label="РС" title="РС (+11,12%)">РС</button>
+
       <button id="themeToggle" class="icon-btn" aria-label="Переключить тему" title="Тема">
         <svg class="icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
           <path d="M12 4V2m0 20v-2M4 12H2m20 0h-2M5.64 5.64L4.22 4.22m15.56 15.56-1.42-1.42M5.64 18.36 4.22 19.78m15.56-15.56-1.42 1.42" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
@@ -29,11 +33,13 @@
           <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" fill="currentColor"/>
         </svg>
       </button>
-          <button id="installBtn" class="icon-btn hidden" aria-label="Установить приложение" title="Установить">⬇️</button>
+
+      <button id="installBtn" class="icon-btn hidden" aria-label="Установить приложение" title="Установить">⬇️</button>
     </div>
   </header>
+
   <div class="container">
-<div class="section-title">Основные работы</div>
+    <div class="section-title">Основные работы</div>
     <table class="calc-table" id="table-main">
       <thead>
         <tr><th>Наименование работ</th><th>Кол-во</th><th>Ед. изм.</th><th>Цена ед.</th><th>Цена</th></tr>
@@ -49,22 +55,33 @@
       <tbody></tbody>
     </table>
 
+    <div class="section-title">Оборудование</div>
+    <table class="calc-table" id="table-equip">
+      <thead>
+        <tr><th>Модель кондиционера / оборудование</th><th>Кол-во</th><th>Ед. изм.</th><th>Цена ед.</th><th>Цена</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
     <div class="total-line"><b>Итого:</b> <span id="grand-total">0</span> ₽</div>
-    <div id="demo-badge" class="kicker" style="text-align:right; margin-top:4px; display:none;"></div>
 
     <div class="discount-wrap" style="display:flex;gap:10px;justify-content:flex-end;align-items:center;flex-wrap:wrap;margin-top:8px;">
       <label class="kicker" for="discount-input" style="margin-right:6px;">Персональная скидка, %</label>
       <input id="discount-input" type="number" min="0" max="100" step="1" placeholder="%" style="width:110px; padding:10px 12px; border-radius:12px; border:2px solid; border-color: var(--input-border,#2a2b2f); background: var(--input-bg,#111); color: #eaeaea; font-size:16px;"/>
     </div>
+
     <div id="discount-line" class="kicker" style="display:none; text-align:right; margin-top:6px;">
       Скидка <b><span id="discount-pct">0</span>%</b>: −<b><span id="discount-amount">0</span> ₽</b>. Итого со скидкой: <b><span id="grand-with-discount">0</span> ₽</b>
+    </div>
+
+    <div id="rs-line" class="kicker" style="display:none; text-align:right; margin-top:6px;">
+      РС +11,12%: +<b><span id="rs-amount">0</span> ₽</b>. К оплате: <b><span id="grand-pay">0</span> ₽</b>
     </div>
 
     <div class="est-meta" id="address-under-discount" style="margin-top:12px;">
       <label for="estimate-address" style="display:block;font-size:14px;opacity:.85;margin-bottom:6px;">Адрес:</label>
       <input id="estimate-address" type="text" placeholder="Укажите адрес объекта" style="width:100%;max-width:600px;"/>
     </div>
-
 
     <div class="est-actions" style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap;">
       <button class="btn-outline" id="btn-copy">Скопировать</button>
@@ -74,14 +91,13 @@
     <div id="estimate" class="container hidden" style="margin-top:12px;">
       <h2 style="margin:0 0 8px;">Смета</h2>
       <div id="estimate-body">Пока ничего не выбрано.</div>
-      
     </div>
   </div>
 </main>
 
 <div id="scrollFab" class="scroll-fab" role="button" aria-label="Прокрутить страницу" title="Вверх">↑</div>
-<footer class="site-footer">Версия: 2112_01 · © <a href="mailto:iglesius21@gmail.com" class="vano-link">Суперкондиционерщик Вано 2025</a>  <br/></footer>
+<footer class="site-footer">Версия: 1912_04 · © <a href="mailto:iglesius21@gmail.com" class="vano-link">Суперкондиционерщик Вано 2025</a><br/></footer>
 
-<script src="script.js?v2112_01"></script>
+<script src="script.js?v1912_04"></script>
 </body>
 </html>

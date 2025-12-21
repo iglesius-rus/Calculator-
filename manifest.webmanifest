@@ -1,6 +1,7 @@
+/* © Вано | iglesius21@gmail.com */
 {
-  "name": "Смета Demo",
-  "short_name": "Смета Demo",
+  "name": "Смета PRO",
+  "short_name": "Смета PRO",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
