@@ -252,7 +252,7 @@ function buildEstimate() {
       </tr>` : '';
 
     const rsRow = (rs.on) ? `
-      <tr>
+      <tr class="rs-row">
         <td colspan="3" style="text-align:right;">РС +11,12%</td>
         <td style="white-space:nowrap; text-align:right;">+${formatMoney(rs.add)} ₽</td>
       </tr>` : '';
@@ -449,6 +449,7 @@ function generatePDF() {
           background: #f9f9f9;
           font-weight: bold;
         }
+        tr.rs-row { display: none; }
         @media print {
           body { margin: 15mm; }
           .no-print { display: none; }

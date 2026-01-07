@@ -1,7 +1,7 @@
 /* © Вано
    iglesius21@gmail.com */
 
-const APP_VERSION = 'v1912_04';
+const APP_VERSION = 'v0701_01';
 const STATIC_CACHE = `static-${APP_VERSION}`;
 const OFFLINE_URL = 'offline.html';
 
@@ -12,7 +12,6 @@ const ASSETS = [
   'script.js',
   'offline.html',
   'manifest.webmanifest',
-  'icon-192.png',  'icon-512.png',
   'logo.svg'
 ];
 
