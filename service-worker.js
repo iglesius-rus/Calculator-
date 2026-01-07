@@ -1,18 +1,19 @@
 /* © Вано
    iglesius21@gmail.com */
 
-const APP_VERSION = 'v0701_01';
+const APP_VERSION = 'v0701_02';
 const STATIC_CACHE = `static-${APP_VERSION}`;
 const OFFLINE_URL = 'offline.html';
 
 const ASSETS = [
-  './',
-  'index.html',
-  'style.css',
-  'script.js',
-  'offline.html',
-  'manifest.webmanifest',
-  'logo.svg'
+  "./",
+  "index.html",
+  "style.css?v0701_02",
+  "script.js?v0701_02",
+  "offline.html",
+  "manifest.webmanifest",
+  "logo.svg",
+  "prices.json?v=0701_02"
 ];
 
 self.addEventListener('install', event => {

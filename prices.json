@@ -1,0 +1,217 @@
+{
+  "schema": 1,
+  "currency": "RUB",
+  "MAIN": [
+    {
+      "name": "Монтаж настенного кондиционера 07-09 BTU",
+      "unit": "компл.",
+      "price": 12000,
+      "id": "main_montazh_nastennogo_konditsionera_07_09_btu"
+    },
+    {
+      "name": "Монтаж настенного кондиционера 12 BTU",
+      "unit": "компл.",
+      "price": 14000,
+      "id": "main_montazh_nastennogo_konditsionera_12_btu"
+    },
+    {
+      "name": "Монтаж настенного кондиционера 18 BTU",
+      "unit": "компл.",
+      "price": 16000,
+      "id": "main_montazh_nastennogo_konditsionera_18_btu"
+    }
+  ],
+  "EXTRA": [
+    {
+      "id": "extra_track_07_09_btu",
+      "name": "Дополнительная трасса (за 1 м) 07–09 (BTU)",
+      "unit": "п.м.",
+      "price": 2000,
+      "hiddenInExtra": true
+    },
+    {
+      "id": "extra_track_12_btu",
+      "name": "Дополнительная трасса (за 1 м) 12 (BTU)",
+      "unit": "п.м.",
+      "price": 2500,
+      "hiddenInExtra": true
+    },
+    {
+      "id": "extra_track_18_btu",
+      "name": "Дополнительная трасса (за 1 м) 18 (BTU)",
+      "unit": "п.м.",
+      "price": 2500,
+      "hiddenInExtra": true
+    },
+    {
+      "name": "Автовышка (от 3 часов)",
+      "unit": "ч.",
+      "price": 2000,
+      "id": "extra_avtovyshka_ot_3_chasov"
+    },
+    {
+      "name": "Демонтаж внутреннего/наружного блока (за каждый)",
+      "unit": "блок",
+      "price": 2000,
+      "id": "extra_demontazh_vnutrennego_naruzhnogo_bloka_za_kazhdyy"
+    },
+    {
+      "name": "Демонтаж кондиционера 07–12",
+      "unit": "шт.",
+      "price": 3000,
+      "id": "extra_demontazh_konditsionera_07_12"
+    },
+    {
+      "name": "Демонтаж кондиционера 18–24",
+      "unit": "шт.",
+      "price": 4000,
+      "id": "extra_demontazh_konditsionera_18_24"
+    },
+    {
+      "name": "Демонтаж/монтаж стеклопакета",
+      "unit": "шт.",
+      "price": 1000,
+      "id": "extra_demontazh_montazh_steklopaketa"
+    },
+    {
+      "name": "Дозаправка кондиционера фреоном",
+      "unit": "г.",
+      "price": 7,
+      "step": 100,
+      "id": "extra_dozapravka_konditsionera_freonom"
+    },
+    {
+      "name": "Кабель гибкий ПВС 3×1,5 мм², ГОСТ (с монтажом штепсельной вилки)",
+      "unit": "м.",
+      "price": 250,
+      "id": "extra_kabel_gibkiy_pvs_3x1_5_mm2_gost_s_montazhom_shtepselnoy_vilk"
+    },
+    {
+      "name": "Кабель-канал под провод",
+      "unit": "м.",
+      "price": 500,
+      "id": "extra_kabel_kanal_pod_provod"
+    },
+    {
+      "name": "Каждый дополнительный выезд",
+      "unit": "выезд",
+      "price": 1000,
+      "id": "extra_kazhdyy_dopolnitelnyy_vyezd"
+    },
+    {
+      "name": "Короб ДКС",
+      "unit": "п.м.",
+      "price": 1200,
+      "id": "extra_korob_dks"
+    },
+    {
+      "name": "Монтаж дополнительного дренажа без короба",
+      "unit": "п.м.",
+      "price": 150,
+      "id": "extra_montazh_dopolnitelnogo_drenazha_bez_koroba"
+    },
+    {
+      "name": "Монтаж корзины",
+      "unit": "шт.",
+      "price": 0,
+      "editablePrice": true,
+      "id": "extra_montazh_korziny"
+    },
+    {
+      "name": "Монтаж наружного блока на вентилируемый фасад",
+      "unit": "услуга",
+      "price": 3500,
+      "id": "extra_montazh_naruzhnogo_bloka_na_ventiliruemyy_fasad"
+    },
+    {
+      "name": "Пайка фреоновых труб (за каждую)",
+      "unit": "пайка",
+      "price": 500,
+      "id": "extra_payka_freonovyh_trub_za_kazhduyu"
+    },
+    {
+      "name": "Потолок «Армстронг» (разборка/сборка)",
+      "unit": "шт.",
+      "price": 200,
+      "id": "extra_potolok_armstrong_razborka_sborka"
+    },
+    {
+      "name": "Пробивка доп. отверстия (бетон, Ø 52 мм)",
+      "unit": "отв.",
+      "price": 2000,
+      "id": "extra_probivka_dop_otverstiya_beton_52_mm"
+    },
+    {
+      "name": "Пробивка доп. отверстия (ГКЛ и т.п., Ø до 52 мм)",
+      "unit": "отв.",
+      "price": 500,
+      "id": "extra_probivka_dop_otverstiya_gkl_i_t_p_do_52_mm"
+    },
+    {
+      "name": "Пробивка доп. отверстия (кирпич, Ø 52 мм)",
+      "unit": "отв.",
+      "price": 1000,
+      "id": "extra_probivka_dop_otverstiya_kirpich_52_mm"
+    },
+    {
+      "name": "Установка антивандальной решётки",
+      "unit": "шт.",
+      "price": 3000,
+      "id": "extra_ustanovka_antivandalnoy_reshetki"
+    },
+    {
+      "name": "Установка зимнего комплекта",
+      "unit": "шт.",
+      "price": 3000,
+      "id": "extra_ustanovka_zimnego_komplekta"
+    },
+    {
+      "name": "Установка помпы",
+      "unit": "шт.",
+      "price": 2000,
+      "id": "extra_ustanovka_pompy"
+    },
+    {
+      "name": "Чистка кондиционера (внутренний и наружный блок)",
+      "unit": "компл.",
+      "price": 3000,
+      "id": "extra_chistka_konditsionera_vnutrenniy_i_naruzhnyy_blok"
+    },
+    {
+      "name": "Чистка кондиционера — полный комплекс",
+      "unit": "компл.",
+      "price": 4000,
+      "id": "extra_chistka_konditsionera_polnyy_kompleks"
+    },
+    {
+      "name": "Штроба в бетоне",
+      "unit": "п.м.",
+      "price": 2500,
+      "id": "extra_shtroba_v_betone"
+    },
+    {
+      "name": "Штроба в кирпиче",
+      "unit": "п.м.",
+      "price": 1500,
+      "id": "extra_shtroba_v_kirpiche"
+    },
+    {
+      "name": "Штроба под дренаж в бетоне",
+      "unit": "п.м.",
+      "price": 800,
+      "id": "extra_shtroba_pod_drenazh_v_betone"
+    },
+    {
+      "name": "Штроба под дренаж в кирпиче",
+      "unit": "п.м.",
+      "price": 600,
+      "id": "extra_shtroba_pod_drenazh_v_kirpiche"
+    },
+    {
+      "name": "Элементы короба ДКС",
+      "unit": "шт.",
+      "price": 350,
+      "id": "extra_elementy_koroba_dks"
+    }
+  ]
+}

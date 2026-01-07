@@ -107,7 +107,7 @@ function rowHTML(r) {
   }
 
   return `
-    <tr>
+    <tr data-id="${r.id ? r.id : ""}">
       <td data-label="Наименование работ">${r.name}</td>
       <td data-label="Кол-во">${qty}</td>
       <td data-label="Ед. изм.">${r.unit}</td>
@@ -141,27 +141,31 @@ function buildEquipmentTable(count) {
   tbody.innerHTML = rows.join('');
 }
 
-function buildMainWithExtras(MAIN) {
+function buildMainWithExtras(MAIN, EXTRA) {
   const tbody = document.querySelector('#table-main tbody');
-  const EXTRA_MAP = {
-    '07-09': { name:'Дополнительная трасса (за 1 м) 07–09 (BTU)', unit:'п.м.', price:2000 },
-    '12':    { name:'Дополнительная трасса (за 1 м) 12 (BTU)',     unit:'п.м.', price:2500 },
-    '18':    { name:'Дополнительная трасса (за 1 м) 18 (BTU)',     unit:'п.м.', price:2500 }
-  };
+  const extraById = new Map((EXTRA || []).map(x => [x.id, x]));
+
+  const track0709 = extraById.get('extra_track_07_09_btu') || { id:'extra_track_07_09_btu', name:'Дополнительная трасса (за 1 м) 07–09 (BTU)', unit:'п.м.', price:2000, hiddenInExtra:true };
+  const track12   = extraById.get('extra_track_12_btu')     || { id:'extra_track_12_btu',     name:'Дополнительная трасса (за 1 м) 12 (BTU)',     unit:'п.м.', price:2500, hiddenInExtra:true };
+  const track18   = extraById.get('extra_track_18_btu')     || { id:'extra_track_18_btu',     name:'Дополнительная трасса (за 1 м) 18 (BTU)',     unit:'п.м.', price:2500, hiddenInExtra:true };
+
   const rows = [];
-  MAIN.forEach(m => {
+  (MAIN || []).forEach(m => {
     rows.push(m);
     if (/BTU/i.test(m.name)) {
       const key = m.name.includes('07-09') ? '07-09' : (m.name.includes('12') && !m.name.includes('012') ? '12' : '18');
-      rows.push(EXTRA_MAP[key]);
+      rows.push(key === '07-09' ? track0709 : (key === '12' ? track12 : track18));
     }
   });
+
   if (tbody) tbody.innerHTML = rows.map(r => rowHTML(r)).join('');
 }
 
+
 function buildTable(id, rows) {
   const tbody = document.querySelector(id + ' tbody');
-  if (tbody) tbody.innerHTML = rows.map(r => rowHTML(r)).join('');
+  const filtered = (rows || []).filter(r => !r || !r.hiddenInExtra);
+  if (tbody) tbody.innerHTML = filtered.map(r => rowHTML(r)).join('');
 }
 
 function readUnitPrice(tr) {
@@ -624,84 +628,403 @@ function initScrollFab() {
   });
 }
 
+// === Prices: base JSON + local overrides ===
+const PRICES_SCHEMA = 1;
+const PRICES_VERSION = '0701_02';
+const PRICES_URL = `./prices.json?v=${PRICES_VERSION}`;
+const PRICES_OVERRIDE_KEY = 'smeta_pro_prices_override_v1';
+
+function escapeHtml(s) {
+  return String(s)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+
+function _safeJsonParse(raw) {
+  try { return JSON.parse(raw); } catch (e) { return null; }
+}
+
+function loadPriceOverride() {
+  try {
+    const raw = localStorage.getItem(PRICES_OVERRIDE_KEY);
+    const obj = _safeJsonParse(raw);
+    if (!obj || obj.schema !== PRICES_SCHEMA || typeof obj.prices !== 'object') return null;
+    return obj;
+  } catch (e) {
+    return null;
+  }
+}
+
+function savePriceOverrideFromData(priceData) {
+  const prices = {};
+  (priceData.MAIN || []).forEach(it => { if (it && it.id) prices[it.id] = parseMoney(it.price); });
+  (priceData.EXTRA || []).forEach(it => { if (it && it.id) prices[it.id] = parseMoney(it.price); });
+
+  const payload = {
+    schema: PRICES_SCHEMA,
+    updatedAt: new Date().toISOString(),
+    prices
+  };
+  try { localStorage.setItem(PRICES_OVERRIDE_KEY, JSON.stringify(payload)); } catch (e) {}
+}
+
+function resetPriceOverride() {
+  try { localStorage.removeItem(PRICES_OVERRIDE_KEY); } catch (e) {}
+}
+
+function normalizePriceData(data) {
+  const out = { schema: PRICES_SCHEMA, currency: 'RUB', MAIN: [], EXTRA: [] };
+  if (!data || typeof data !== 'object') return out;
+
+  const fixList = (arr) => {
+    if (!Array.isArray(arr)) return [];
+    return arr
+      .filter(x => x && typeof x === 'object')
+      .map(x => ({
+        id: String(x.id || ''),
+        name: String(x.name || ''),
+        unit: String(x.unit || ''),
+        price: parseMoney(x.price),
+        step: x.step ? parseMoney(x.step) : undefined,
+        editablePrice: !!x.editablePrice,
+        hiddenInExtra: !!x.hiddenInExtra
+      }))
+      .filter(x => x.id && x.name);
+  };
+
+  out.MAIN = fixList(data.MAIN);
+  out.EXTRA = fixList(data.EXTRA);
+  return out;
+}
+
+function applyOverrideToData(base, override) {
+  if (!override || override.schema !== PRICES_SCHEMA) return base;
+  const map = (override.prices && typeof override.prices === 'object') ? override.prices : {};
+
+  const applyList = (list) => {
+    list.forEach(it => {
+      if (!it || !it.id) return;
+      const v = map[it.id];
+      if (v === null || v === undefined) return;
+      const n = parseMoney(v);
+      if (Number.isFinite(n) && n >= 0) it.price = n;
+    });
+  };
+
+  applyList(base.MAIN);
+  applyList(base.EXTRA);
+  return base;
+}
+
+function fallbackPriceData() {
+  // Аварийный запасной вариант, если prices.json не загрузился.
+  // Да, мир несовершенен.
+  return normalizePriceData({"schema": 1, "currency": "RUB", "MAIN": [{"name": "Монтаж настенного кондиционера 07-09 BTU", "unit": "компл.", "price": 12000, "id": "main_montazh_nastennogo_konditsionera_07_09_btu"}, {"name": "Монтаж настенного кондиционера 12 BTU", "unit": "компл.", "price": 14000, "id": "main_montazh_nastennogo_konditsionera_12_btu"}, {"name": "Монтаж настенного кондиционера 18 BTU", "unit": "компл.", "price": 16000, "id": "main_montazh_nastennogo_konditsionera_18_btu"}], "EXTRA": [{"id": "extra_track_07_09_btu", "name": "Дополнительная трасса (за 1 м) 07–09 (BTU)", "unit": "п.м.", "price": 2000, "hiddenInExtra": true}, {"id": "extra_track_12_btu", "name": "Дополнительная трасса (за 1 м) 12 (BTU)", "unit": "п.м.", "price": 2500, "hiddenInExtra": true}, {"id": "extra_track_18_btu", "name": "Дополнительная трасса (за 1 м) 18 (BTU)", "unit": "п.м.", "price": 2500, "hiddenInExtra": true}, {"name": "Автовышка (от 3 часов)", "unit": "ч.", "price": 2000, "id": "extra_avtovyshka_ot_3_chasov"}, {"name": "Демонтаж внутреннего/наружного блока (за каждый)", "unit": "блок", "price": 2000, "id": "extra_demontazh_vnutrennego_naruzhnogo_bloka_za_kazhdyy"}, {"name": "Демонтаж кондиционера 07–12", "unit": "шт.", "price": 3000, "id": "extra_demontazh_konditsionera_07_12"}, {"name": "Демонтаж кондиционера 18–24", "unit": "шт.", "price": 4000, "id": "extra_demontazh_konditsionera_18_24"}, {"name": "Демонтаж/монтаж стеклопакета", "unit": "шт.", "price": 1000, "id": "extra_demontazh_montazh_steklopaketa"}, {"name": "Дозаправка кондиционера фреоном", "unit": "г.", "price": 7, "step": 100, "id": "extra_dozapravka_konditsionera_freonom"}, {"name": "Кабель гибкий ПВС 3×1,5 мм², ГОСТ (с монтажом штепсельной вилки)", "unit": "м.", "price": 250, "id": "extra_kabel_gibkiy_pvs_3x1_5_mm2_gost_s_montazhom_shtepselnoy_vilk"}, {"name": "Кабель-канал под провод", "unit": "м.", "price": 500, "id": "extra_kabel_kanal_pod_provod"}, {"name": "Каждый дополнительный выезд", "unit": "выезд", "price": 1000, "id": "extra_kazhdyy_dopolnitelnyy_vyezd"}, {"name": "Короб ДКС", "unit": "п.м.", "price": 1200, "id": "extra_korob_dks"}, {"name": "Монтаж дополнительного дренажа без короба", "unit": "п.м.", "price": 150, "id": "extra_montazh_dopolnitelnogo_drenazha_bez_koroba"}, {"name": "Монтаж корзины", "unit": "шт.", "price": 0, "editablePrice": true, "id": "extra_montazh_korziny"}, {"name": "Монтаж наружного блока на вентилируемый фасад", "unit": "услуга", "price": 3500, "id": "extra_montazh_naruzhnogo_bloka_na_ventiliruemyy_fasad"}, {"name": "Пайка фреоновых труб (за каждую)", "unit": "пайка", "price": 500, "id": "extra_payka_freonovyh_trub_za_kazhduyu"}, {"name": "Потолок «Армстронг» (разборка/сборка)", "unit": "шт.", "price": 200, "id": "extra_potolok_armstrong_razborka_sborka"}, {"name": "Пробивка доп. отверстия (бетон, Ø 52 мм)", "unit": "отв.", "price": 2000, "id": "extra_probivka_dop_otverstiya_beton_52_mm"}, {"name": "Пробивка доп. отверстия (ГКЛ и т.п., Ø до 52 мм)", "unit": "отв.", "price": 500, "id": "extra_probivka_dop_otverstiya_gkl_i_t_p_do_52_mm"}, {"name": "Пробивка доп. отверстия (кирпич, Ø 52 мм)", "unit": "отв.", "price": 1000, "id": "extra_probivka_dop_otverstiya_kirpich_52_mm"}, {"name": "Установка антивандальной решётки", "unit": "шт.", "price": 3000, "id": "extra_ustanovka_antivandalnoy_reshetki"}, {"name": "Установка зимнего комплекта", "unit": "шт.", "price": 3000, "id": "extra_ustanovka_zimnego_komplekta"}, {"name": "Установка помпы", "unit": "шт.", "price": 2000, "id": "extra_ustanovka_pompy"}, {"name": "Чистка кондиционера (внутренний и наружный блок)", "unit": "компл.", "price": 3000, "id": "extra_chistka_konditsionera_vnutrenniy_i_naruzhnyy_blok"}, {"name": "Чистка кондиционера — полный комплекс", "unit": "компл.", "price": 4000, "id": "extra_chistka_konditsionera_polnyy_kompleks"}, {"name": "Штроба в бетоне", "unit": "п.м.", "price": 2500, "id": "extra_shtroba_v_betone"}, {"name": "Штроба в кирпиче", "unit": "п.м.", "price": 1500, "id": "extra_shtroba_v_kirpiche"}, {"name": "Штроба под дренаж в бетоне", "unit": "п.м.", "price": 800, "id": "extra_shtroba_pod_drenazh_v_betone"}, {"name": "Штроба под дренаж в кирпиче", "unit": "п.м.", "price": 600, "id": "extra_shtroba_pod_drenazh_v_kirpiche"}, {"name": "Элементы короба ДКС", "unit": "шт.", "price": 350, "id": "extra_elementy_koroba_dks"}]});
+}
+
+async function loadPriceData() {
+  try {
+    const res = await fetch(PRICES_URL, { cache: 'no-store' });
+    if (!res.ok) throw new Error('prices.json not loaded');
+    const json = await res.json();
+    const base = normalizePriceData(json);
+    const ov = loadPriceOverride();
+    return applyOverrideToData(base, ov);
+  } catch (e) {
+    const base = fallbackPriceData();
+    const ov = loadPriceOverride();
+    return applyOverrideToData(base, ov);
+  }
+}
+
+// === Price editor UI ===
+function ensurePriceEditorMarkup() {
+  if (document.getElementById('priceEditorBackdrop')) return;
+
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `
+    <div id="priceEditorBackdrop" class="pe-backdrop hidden" role="dialog" aria-modal="true" aria-label="Редактор цен">
+      <div class="pe-modal">
+        <div class="pe-head">
+          <div class="pe-title">Редактор цен</div>
+          <button id="peClose" class="pe-btn" type="button">Закрыть</button>
+        </div>
+
+        <div class="pe-tabs">
+          <button class="pe-tab is-active" data-tab="MAIN" type="button">MAIN</button>
+          <button class="pe-tab" data-tab="EXTRA" type="button">EXTRA</button>
+        </div>
+
+        <div class="pe-body">
+          <div class="pe-toolbar">
+            <input id="peSearch" type="text" placeholder="Поиск..." />
+            <button id="peExport" class="pe-btn" type="button">Экспорт JSON</button>
+            <label class="pe-import">
+              Импорт JSON
+              <input id="peImport" type="file" accept="application/json" hidden />
+            </label>
+            <button id="peReset" class="pe-btn" type="button">Сброс</button>
+          </div>
+
+          <div id="peTableWrap"></div>
+          <div class="kicker" style="margin-top:10px;">
+            Сохранение цен: этот браузер (localStorage). На другом телефоне это не появится, потому что магии не существует.
+          </div>
+        </div>
+
+        <div class="pe-foot">
+          <div class="kicker">Подсказка: меняешь цену и жмёшь «Сохранить».</div>
+          <button id="peSave" class="pe-btn" type="button">Сохранить</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(wrap.firstElementChild);
+}
+
+function openPriceEditor() {
+  const b = document.getElementById('priceEditorBackdrop');
+  if (!b) return;
+  b.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closePriceEditor() {
+  const b = document.getElementById('priceEditorBackdrop');
+  if (!b) return;
+  b.classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+function downloadJson(filename, obj) {
+  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function readJsonFile(file) {
+  const text = await file.text();
+  return JSON.parse(text);
+}
+
+function priceEditorRender(state) {
+  const wrap = document.getElementById('peTableWrap');
+  if (!wrap) return;
+
+  const q = (document.getElementById('peSearch')?.value || '').trim().toLowerCase();
+  const list = (state.data && state.data[state.tab]) ? state.data[state.tab] : [];
+
+  const filtered = q ? list.filter(x =>
+    (x.name || '').toLowerCase().includes(q) ||
+    (x.unit || '').toLowerCase().includes(q) ||
+    (x.id || '').toLowerCase().includes(q)
+  ) : list;
+
+  const rows = filtered.map(item => {
+    const badge = (state.tab === 'EXTRA' && item.hiddenInExtra) ? `<span class="pe-badge">авто (BTU)</span>` : '';
+    return `
+      <tr>
+        <td>${escapeHtml(item.name)} ${badge}</td>
+        <td>${escapeHtml(item.unit)}</td>
+        <td style="opacity:.75;">${escapeHtml(item.id)}</td>
+        <td>
+          <input class="pe-price" type="number" min="0" step="1" value="${Number(item.price) || 0}" data-id="${escapeHtml(item.id)}" />
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  wrap.innerHTML = `
+    <table class="pe-table">
+      <thead>
+        <tr><th>Название</th><th>Ед.</th><th>ID</th><th>Цена</th></tr>
+      </thead>
+      <tbody>
+        ${rows || `<tr><td colspan="4">Пусто. Цены ушли покурить.</td></tr>`}
+      </tbody>
+    </table>
+  `;
+
+  wrap.querySelectorAll('input.pe-price').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const id = inp.getAttribute('data-id');
+      const val = parseMoney(inp.value);
+      const arr = state.data[state.tab] || [];
+      const obj = arr.find(x => x.id === id);
+      if (obj && Number.isFinite(val) && val >= 0) obj.price = val;
+    });
+  });
+}
+
+function updatePricesInTables(priceData) {
+  const map = new Map();
+  (priceData.MAIN || []).forEach(it => map.set(it.id, it));
+  (priceData.EXTRA || []).forEach(it => map.set(it.id, it));
+
+  document.querySelectorAll('#table-main tbody tr, #table-extra tbody tr').forEach(tr => {
+    const id = tr.getAttribute('data-id') || '';
+    if (!id || !map.has(id)) return;
+
+    if (tr.querySelector('.price-input')) return;
+
+    const priceCell = tr.querySelector('td.price');
+    const item = map.get(id);
+    if (priceCell && item) priceCell.textContent = formatMoney(parseMoney(item.price)) + ' ₽';
+  });
+
+  const wasOpen = !!document.querySelector('#estimate-body table');
+  recalcAll();
+  if (wasOpen) buildEstimate();
+}
+
+function wirePriceEditor(state) {
+  const btn = document.getElementById('pricesBtn');
+  if (btn) btn.addEventListener('click', () => {
+    priceEditorRender(state);
+    openPriceEditor();
+  });
+
+  document.getElementById('peClose')?.addEventListener('click', closePriceEditor);
+
+  document.getElementById('priceEditorBackdrop')?.addEventListener('click', (e) => {
+    if (e.target && e.target.id === 'priceEditorBackdrop') closePriceEditor();
+  });
+
+  document.querySelectorAll('.pe-tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.pe-tab').forEach(x => x.classList.remove('is-active'));
+      t.classList.add('is-active');
+      state.tab = t.getAttribute('data-tab') || 'MAIN';
+      priceEditorRender(state);
+    });
+  });
+
+  document.getElementById('peSearch')?.addEventListener('input', () => priceEditorRender(state));
+
+  document.getElementById('peSave')?.addEventListener('click', () => {
+    savePriceOverrideFromData(state.data);
+    closePriceEditor();
+    updatePricesInTables(state.data);
+  });
+
+  document.getElementById('peReset')?.addEventListener('click', async () => {
+    resetPriceOverride();
+    closePriceEditor();
+    state.data = await loadPriceData();
+    updatePricesInTables(state.data);
+  });
+
+  document.getElementById('peExport')?.addEventListener('click', () => {
+    downloadJson('prices.custom.json', {
+      schema: PRICES_SCHEMA,
+      currency: 'RUB',
+      MAIN: state.data.MAIN,
+      EXTRA: state.data.EXTRA
+    });
+  });
+
+  document.getElementById('peImport')?.addEventListener('change', async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    try {
+      const importedRaw = await readJsonFile(file);
+      const imported = normalizePriceData(importedRaw);
+
+      const byId = new Map();
+      (imported.MAIN || []).forEach(it => byId.set(it.id, it.price));
+      (imported.EXTRA || []).forEach(it => byId.set(it.id, it.price));
+
+      const applyMap = (list) => {
+        list.forEach(it => {
+          if (!it || !it.id) return;
+          if (!byId.has(it.id)) return;
+          const n = parseMoney(byId.get(it.id));
+          if (Number.isFinite(n) && n >= 0) it.price = n;
+        });
+      };
+      applyMap(state.data.MAIN);
+      applyMap(state.data.EXTRA);
+
+      savePriceOverrideFromData(state.data);
+      closePriceEditor();
+      updatePricesInTables(state.data);
+    } catch (err) {
+      alert('Импорт не удался: ' + (err && err.message ? err.message : String(err)));
+    } finally {
+      e.target.value = '';
+    }
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   // Восстановить состояние РС
   setRsOn(getRsOn());
 
-  const MAIN = [
-    { name:'Монтаж настенного кондиционера 07-09 BTU', unit:'компл.', price:12000 },
-    { name:'Монтаж настенного кондиционера 12 BTU', unit:'компл.', price:14000 },
-    { name:'Монтаж настенного кондиционера 18 BTU', unit:'компл.', price:16000 }
-  ];
+  const init = async () => {
+    // 1) Грузим цены (prices.json + override)
+    const priceData = await loadPriceData();
 
-  let EXTRA = [
-    { name:'Автовышка (от 3 часов)', unit:'ч.', price:2000 },
-    { name:'Демонтаж внутреннего/наружного блока (за каждый)', unit:'блок', price:2000 },
-    { name:'Демонтаж кондиционера 07–12', unit:'шт.', price:3000 },
-    { name:'Демонтаж кондиционера 18–24', unit:'шт.', price:4000 },
-    { name:'Демонтаж/монтаж стеклопакета', unit:'шт.', price:1000 },
-    { name:'Дозаправка кондиционера фреоном', unit:'г.', price:7, step:100 },
-    { name:'Кабель гибкий ПВС 3×1,5 мм², ГОСТ (с монтажом штепсельной вилки)', unit:'м.', price:250 },
-    { name:'Кабель-канал под провод', unit:'м.', price:500 },
-    { name:'Каждый дополнительный выезд', unit:'выезд', price:1000 },
-    { name:'Короб ДКС', unit:'п.м.', price:1200 },
-    { name:'Монтаж дополнительного дренажа без короба', unit:'п.м.', price:150 },
-    { name:'Монтаж корзины', unit:'шт.', price:0, editablePrice:true },
-    { name:'Монтаж наружного блока на вентилируемый фасад', unit:'услуга', price:3500 },
-    { name:'Пайка фреоновых труб (за каждую)', unit:'пайка', price:500 },
-    { name:'Потолок «Армстронг» (разборка/сборка)', unit:'шт.', price:200 },
-    { name:'Пробивка доп. отверстия (бетон, Ø 52 мм)', unit:'отв.', price:2000 },
-    { name:'Пробивка доп. отверстия (ГКЛ и т.п., Ø до 52 мм)', unit:'отв.', price:500 },
-    { name:'Пробивка доп. отверстия (кирпич, Ø 52 мм)', unit:'отв.', price:1000 },
-    { name:'Установка антивандальной решётки', unit:'шт.', price:3000 },
-    { name:'Установка зимнего комплекта', unit:'шт.', price:3000 },
-    { name:'Установка помпы', unit:'шт.', price:2000 },
-    { name:'Чистка кондиционера (внутренний и наружный блок)', unit:'компл.', price:3000 },
-    { name:'Чистка кондиционера — полный комплекс', unit:'компл.', price:4000 },
-    { name:'Штроба в бетоне', unit:'п.м.', price:2500 },
-    { name:'Штроба в кирпиче', unit:'п.м.', price:1500 },
-    { name:'Штроба под дренаж в бетоне', unit:'п.м.', price:800 },
-    { name:'Штроба под дренаж в кирпиче', unit:'п.м.', price:600 },
-    { name:'Элементы короба ДКС', unit:'шт.', price:350 }
-  ];
+    // 2) Редактор цен
+    ensurePriceEditorMarkup();
+    const editorState = { data: priceData, tab: 'MAIN' };
+    wirePriceEditor(editorState);
 
-  // Сортировка: обычные позиции по алфавиту, а ДКС-строки держим внизу
-  // (но "Короб ДКС" всё равно выше "Элементы короба ДКС")
-  EXTRA = EXTRA.sort((a, b) => {
-    const an = a.name || '';
-    const bn = b.name || '';
+    // 3) Сортировка EXTRA: обычные позиции по алфавиту, а ДКС-строки держим внизу
+    let EXTRA = (priceData.EXTRA || []).slice();
 
-    const dksRank = (n) => {
-      if (n === 'Короб ДКС') return 1;
-      if (n === 'Элементы короба ДКС') return 2;
-      return 0;
-    };
+    EXTRA = EXTRA.sort((a, b) => {
+      const an = a.name || '';
+      const bn = b.name || '';
 
-    const ar = dksRank(an);
-    const br = dksRank(bn);
+      const dksRank = (n) => {
+        if (n === 'Короб ДКС') return 1;
+        if (n === 'Элементы короба ДКС') return 2;
+        return 0;
+      };
 
-    // Всё, что не ДКС, идёт раньше
-    if (ar === 0 && br !== 0) return -1;
-    if (ar !== 0 && br === 0) return 1;
+      const ar = dksRank(an);
+      const br = dksRank(bn);
 
-    // Оба не ДКС: обычная сортировка
-    if (ar === 0 && br === 0) return an.localeCompare(bn, 'ru');
+      if (ar === 0 && br !== 0) return -1;
+      if (ar !== 0 && br === 0) return 1;
 
-    // Оба ДКС: фиксированный порядок (Короб -> Элементы)
-    return ar - br;
+      if (ar === 0 && br === 0) return an.localeCompare(bn, 'ru');
+
+      return ar - br;
+    });
+
+    // 4) Строим таблицы
+    buildMainWithExtras(priceData.MAIN, EXTRA);
+    buildTable('#table-extra', EXTRA);
+    buildEquipmentTable(3);
+
+    attachEstimateUI();
+    initScrollFab();
+    recalcAll();
+
+    // чтобы редактор работал с тем же объектом, который в таблицах
+    editorState.data = { ...priceData, EXTRA };
+  };
+
+  init().catch((e) => {
+    console.error(e);
+    buildEquipmentTable(3);
+    attachEstimateUI();
+    initScrollFab();
+    recalcAll();
   });
-
-  buildMainWithExtras(MAIN);
-  buildTable('#table-extra', EXTRA);
-  buildEquipmentTable(3);
-  // Синхронизация состояния РС при загрузке (чтобы не выглядело как "не работает")
-  setRsOn(getRsOn());
-
-
-  attachEstimateUI();
-  initScrollFab();
-  recalcAll();
 });
+
 
 // Service Worker
 if ('serviceWorker' in navigator) {
