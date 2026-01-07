@@ -630,7 +630,7 @@ function initScrollFab() {
 
 // === Prices: base JSON + local overrides ===
 const PRICES_SCHEMA = 1;
-const PRICES_VERSION = '0701_02';
+const PRICES_VERSION = '0701_03';
 const PRICES_URL = `./prices.json?v=${PRICES_VERSION}`;
 const PRICES_OVERRIDE_KEY = 'smeta_pro_prices_override_v1';
 

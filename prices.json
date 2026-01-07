@@ -113,8 +113,7 @@
     {
       "name": "Монтаж корзины",
       "unit": "шт.",
-      "price": 0,
-      "editablePrice": true,
+      "price": 5000,
       "id": "extra_montazh_korziny"
     },
     {
