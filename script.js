@@ -630,7 +630,7 @@ function initScrollFab() {
 
 // === Prices: base JSON + local overrides ===
 const PRICES_SCHEMA = 1;
-const PRICES_VERSION = '0701_03';
+const PRICES_VERSION = '0701_04';
 const PRICES_URL = `./prices.json?v=${PRICES_VERSION}`;
 const PRICES_OVERRIDE_KEY = 'smeta_pro_prices_override_v1';
 
@@ -762,9 +762,9 @@ function ensurePriceEditorMarkup() {
         <div class="pe-body">
           <div class="pe-toolbar">
             <input id="peSearch" type="text" placeholder="Поиск..." />
-            <button id="peExport" class="pe-btn" type="button">Экспорт JSON</button>
+            <button id="peExport" class="pe-btn" type="button">Экспорт настроек</button>
             <label class="pe-import">
-              Импорт JSON
+              Импорт настроек
               <input id="peImport" type="file" accept="application/json" hidden />
             </label>
             <button id="peReset" class="pe-btn" type="button">Сброс</button>
@@ -836,7 +836,6 @@ function priceEditorRender(state) {
       <tr>
         <td>${escapeHtml(item.name)} ${badge}</td>
         <td>${escapeHtml(item.unit)}</td>
-        <td style="opacity:.75;">${escapeHtml(item.id)}</td>
         <td>
           <input class="pe-price" type="number" min="0" step="1" value="${Number(item.price) || 0}" data-id="${escapeHtml(item.id)}" />
         </td>
@@ -847,10 +846,10 @@ function priceEditorRender(state) {
   wrap.innerHTML = `
     <table class="pe-table">
       <thead>
-        <tr><th>Название</th><th>Ед.</th><th>ID</th><th>Цена</th></tr>
+        <tr><th>Название</th><th>Ед.</th><th>Цена</th></tr>
       </thead>
       <tbody>
-        ${rows || `<tr><td colspan="4">Пусто. Цены ушли покурить.</td></tr>`}
+        ${rows || `<tr><td colspan="3">Пусто. Цены ушли покурить.</td></tr>`}
       </tbody>
     </table>
   `;
